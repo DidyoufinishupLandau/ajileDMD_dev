@@ -3,6 +3,10 @@
 Created on Tue Mar  8 14:43:40 2022
 
 @author: Patrick Parkinson
+---
+Edited 03/07/2023 - AK
+
+Connection Settings added (set as default)
 """
 
 from __future__ import annotations ## fixes images: list[] issue with list[]
@@ -36,6 +40,14 @@ class DMD:
         device_number = 0
         # Create system
         self._system = aj.HostSystem()
+
+        ## Connection Settings
+        ipAddress = "192.168.200.1"
+        netmask = "255.255.255.0"
+        gateway = "0.0.0.0"
+        port = 5005
+        self._system.SetConnectionSettingsStr(ipAddress, netmask, gateway, port)
+
         # Set interface
         self._system.SetCommunicationInterface(comm_interface)
         # Set USB number

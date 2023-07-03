@@ -24,8 +24,9 @@ class ConfigDict(TypedDict):
 # grabs the parameters for the program from config file 'config.ini'
 def get_config_parameters():
     config = configparser.ConfigParser()
-    config.read("config.ini")
-    return ConfigDict(basis_type=config.get("pattern", "basis_type"),
+    ## Works with full path
+    config.read(r"C:\Users\Alex\Documents\PSI_intern\OneDrive_1_6-20-2023\Software\DMD---PSI\config.ini")
+    return ConfigDict(basis_type=config.get('pattern', 'basis_type'),
                       basis_size=config.getint("pattern", "basis_size"),
                       sensing_area=config.getint("pattern", "sensing_area"),
                       top_left_x=config.getint("pattern", "top_left_x"),

@@ -3,10 +3,15 @@
 Created on Tue Mar 22 09:42:55 2022
 
 @author: Peter
+-----
+Edited 03/07/2023: AK
+
+np.random -> random : there were 2 args given and np.random accepts at most 1
 """
 from __future__ import annotations
 from scipy.linalg import hadamard
 import numpy as np
+import random ## previously np.random was used but it was incorrect due to given arguments (2 were given)
 
 ## Changes = to : to fix the error (not valid for 3.8 but works for 3.10)
 BasisTuple: tuple[list, list] 
@@ -26,6 +31,10 @@ def generate_bases(basis_type: str = "hadamard",
         basis_patterns, basis_indices = random_single_on(basis_size, percent_compression, indices)
     elif basis_type == "random 50 percent":
         basis_patterns, basis_indices = random_50_percent(basis_size, percent_compression, indices)
+    elif basis_type == "right side":
+        basis_patterns, basis_indices = one_side(basis_size, percent_compression, "right")
+    elif basis_type == "left side":
+        basis_patterns, basis_indices = one_side(basis_size, percent_compression, "left")
     else:
         basis_patterns, basis_indices = hadamard_bases(basis_size, percent_compression, indices)
     return basis_patterns, basis_indices
@@ -39,7 +48,7 @@ def hadamard_bases(size: int,
 
     if indices is None:
         number_samples = int((size ** 2) * 0.01 * percent_sample)
-        basis_indices = np.random.sample(np.arange((size ** 2)).tolist(), number_samples)
+        basis_indices = random.sample(np.arange((size ** 2)).tolist(), number_samples)
     else:
         basis_indices = indices
 
@@ -73,7 +82,7 @@ def random_single_on(size: int, percent_sample: float = 100, indices: Indices = 
     """Random raster."""
     if indices is None:
         number_samples: int = int((size ** 2) * 0.01 * percent_sample)
-        basis_indices = np.random.sample(np.arange((size ** 2)).tolist(), number_samples)
+        basis_indices = random.sample(np.arange((size ** 2)).tolist(), number_samples)
     else:
         basis_indices = indices
 
@@ -102,6 +111,25 @@ def random_50_percent(size: int, percent_sample: float = 100, seed=None) -> Basi
         pattern[:int(size ** 2 / 2)] = 1
 
         np.random.shuffle(pattern)
+        pattern = pattern.reshape(size, size)
+        basis_patterns.append(pattern)
+        index.append(i)
+
+    return basis_patterns, index
+
+
+def one_side(size: int, percent_sample: float = 100, side : str = "left") -> BasisTuple:
+    """Flip all mirrors to one side """
+    number_samples: int = int((size ** 2) * 0.01 * percent_sample)
+
+    index: list[int] = []
+    basis_patterns: list[np.ndarray] = []
+    for i in range(number_samples):
+        if(side == "left"):
+            pattern = np.ones(size ** 2)
+        else:
+            pattern = np.zeros(size ** 2)
+
         pattern = pattern.reshape(size, size)
         basis_patterns.append(pattern)
         index.append(i)
