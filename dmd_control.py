@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# -*- python=3.8.x
 """
 Created on Tue Mar  8 14:43:40 2022
 
@@ -9,7 +10,7 @@ Edited 03/07/2023 - AK
 Connection Settings added (set as default)
 """
 
-from __future__ import annotations ## fixes images: list[] issue with list[]
+from __future__ import annotations ## fixes "images: list[]" issue with list[]
 import numpy as np
 import ajiledriver as aj
 from warnings import warn
@@ -75,6 +76,13 @@ class DMD:
         if self.total_frames == 0:
             warn("No frames defined. Sequence should be created after frames are uploaded to the device.", UserWarning)
         # Create the sequence
+        """
+        taken from C# driver to understand the meaning of each arg
+        Sequence(ushort sequenceID, string sequenceName, DeviceType_e hardwareType, SequenceType_e sequenceType, uint sequenceRepeatCount)
+        SequenceType_e:
+            SEQ_TYPE_PRELOAD = 0,
+            SEQ_TYPE_STREAM = 1
+        """
         seq = aj.Sequence(
             self.sequence_ID,
             self.project_name,
@@ -85,6 +93,7 @@ class DMD:
         # Add the sequence to the project
         self._project.AddSequence(seq)
         # Add this to the list to execute
+        # SequenceItem(ushort sequenceID, uint sequenceItemRepeatCount)
         self._project.AddSequenceItem(aj.SequenceItem(self.sequence_ID, 1))
         # Create and add frames
         self._frames = []
@@ -112,6 +121,7 @@ class DMD:
             raise IOError('Project must be defined before trigger is created')
         rule = aj.TriggerRule()
         # Add trigger from device
+        # TriggerRulePair(byte componentIndex, byte triggerType)
         rule.AddTriggerFromDevice(aj.TriggerRulePair(self.dmd_index, aj.FRAME_STARTED))
         # Set trigger
         rule.SetTriggerToDevice(aj.TriggerRulePair(controller_index, aj.EXT_TRIGGER_OUTPUT_1))
@@ -140,7 +150,8 @@ class DMD:
         self._system.GetDriver().LoadProject(self._project)
         self._system.GetDriver().WaitForLoadComplete(-1)
         # Start the current sequence
-        self._system.GetDriver().StartSequence(self.sequence_ID, self.dmd_index)
+        # StartSequence(uint sequenceID, int deviceID, uint reportingFreq=1) 
+        self._system.GetDriver().StartSequence(self.sequence_ID, self.dmd_index, 5)
         # Wait to start running
         while self._system.GetDeviceState(self.dmd_index).RunState() != aj.RUN_STATE_RUNNING:
             pass
