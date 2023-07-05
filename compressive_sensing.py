@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
+# -*- python=3.8.x
 """
 Created on Tue Mar  8 14:48:15 2022
 
 @author: Patrick Parkinson
+----
+Edited 04/07/2023 - AK
+
+Changed config path since relative path didn't work (why?)
 """
 
 import configparser
