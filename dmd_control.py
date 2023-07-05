@@ -151,7 +151,7 @@ class DMD:
         self._system.GetDriver().WaitForLoadComplete(-1)
         # Start the current sequence
         # StartSequence(uint sequenceID, int deviceID, uint reportingFreq=1) 
-        self._system.GetDriver().StartSequence(self.sequence_ID, self.dmd_index, 5)
+        self._system.GetDriver().StartSequence(self.sequence_ID, self.dmd_index, 1)
         # Wait to start running
         while self._system.GetDeviceState(self.dmd_index).RunState() != aj.RUN_STATE_RUNNING:
             pass
