@@ -55,7 +55,7 @@ def checkers() -> np.array:
                 npImage[i][j] = 255
     return npImage
 
-def create_all():
+def create_all_patterns():
     save_image(one_side(),"left_side")
     save_image(one_side("right"),"right_side")
     save_image(horizontal_50_50(),"horizontal_50_50")
