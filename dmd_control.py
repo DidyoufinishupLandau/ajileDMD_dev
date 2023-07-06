@@ -31,7 +31,7 @@ class DMD:
     sequence_ID: int = 1
     total_frames: int = 0
     # Variables
-    frame_time: int = 20
+    frame_time: int = 1000
 
     def __init__(self):
         """connects to DMD"""
@@ -88,13 +88,15 @@ class DMD:
             self.project_name,
             aj.DMD_4500_DEVICE_TYPE,
             aj.SEQ_TYPE_PRELOAD,
-            1
+            5
         )
+        seq.SetRepeatCount(5)
+        print(seq.RepeatCount())
         # Add the sequence to the project
         self._project.AddSequence(seq)
         # Add this to the list to execute
         # SequenceItem(ushort sequenceID, uint sequenceItemRepeatCount)
-        self._project.AddSequenceItem(aj.SequenceItem(self.sequence_ID, 1))
+        self._project.AddSequenceItem(aj.SequenceItem(self.sequence_ID, 5))
         # Create and add frames
         self._frames = []
         for i in range(self.total_frames):
