@@ -26,10 +26,10 @@ class DMD:
     # Configuration
     dmd_index: int = None
     project_name: str = "DMD_control"
-    sequence_ID: int = 1
+    main_sequence_ID: int = 1
     total_frames: int = 0
     # Variables
-    frame_time: int = 1000
+    frame_time: int = 10
 
     def __init__(self):
         """connects to DMD"""
@@ -67,7 +67,7 @@ class DMD:
         # Get DMD index
         self.dmd_index = self._project.GetComponentIndexWithDeviceType(aj.DMD_4500_DEVICE_TYPE)
 
-    def create_sequence(self) -> None:
+    def create_main_sequence(self, seqRepCount : int) -> None:
         """Creates a sequence, sequence item and frame object"""
         if self._project is None:
             raise SystemError("Project must be created before sequence is created")
@@ -82,38 +82,32 @@ class DMD:
             SEQ_TYPE_STREAM = 1
         """
         seq = aj.Sequence(
-            self.sequence_ID,
+            self.main_sequence_ID,
             self.project_name,
             aj.DMD_4500_DEVICE_TYPE,
             aj.SEQ_TYPE_PRELOAD,
-            5
+            seqRepCount
         )
-        seq.SetRepeatCount(5)
-        print(seq.RepeatCount())
         # Add the sequence to the project
         self._project.AddSequence(seq)
-        # Add this to the list to execute
-        # SequenceItem(ushort sequenceID, uint sequenceItemRepeatCount)
-        self._project.AddSequenceItem(aj.SequenceItem(self.sequence_ID, 5))
-        # Create and add frames
-        self._frames = []
-        for i in range(self.total_frames):
-            # Create a frame
-            frame = aj.Frame()
-            # Add it to the sequence
-            frame.SetSequenceID(self.sequence_ID)
-            # Add the ID
-            frame.SetImageID(i + 1)
-            # set frame time
-            frame.SetFrameTimeMSec(self.frame_time)
-            # Add frame to project
-            self._project.AddFrame(frame)
-            # Add frame to internal variable
-            self._frames.append(frame)
         # Check sequence
-        _, sequence_was_found = self._project.FindSequence(self.sequence_ID)
+        _, sequence_was_found = self._project.FindSequence(self.main_sequence_ID)
         if not sequence_was_found:
             raise IOError('Sequence not found on device')
+
+    def add_sub_sequence(self, npImage : np.array, seqID : int):
+        "Add sequence to the main sequence"
+        # public SequenceItem(ushort sequenceID, uint sequenceItemRepeatCount)
+        seqItem = aj.SequenceItem(seqID, 1)
+        self._project.AddSequenceItem(seqItem)
+        # create two frames and add them to the project
+        # (added to the last sequence item in the sequence)
+        frame = aj.Frame(seqID)
+        self._project.AddFrame(frame)
+        myImage = aj.Image(seqID)
+        # load the NumPy image into the Image object and convert it to DMD 4500 format
+        myImage.ReadFromMemory(npImage, 8, aj.ROW_MAJOR_ORDER, aj.DMD_4500_DEVICE_TYPE)
+
 
     def create_trigger_rules(self, controller_index: int):
         """Create a trigger rule to connect the DMD frame started to the external output trigger"""
