@@ -12,6 +12,7 @@ from __future__ import annotations ## fixes "images: list[]" issue with list[]
 import numpy as np
 import ajiledriver as aj
 from warnings import warn
+import cv2
 
 class DMD:
     """Class defined to wrap Ajile DMD controller."""
@@ -83,7 +84,7 @@ class DMD:
         """
         seq = aj.Sequence(
             self.main_sequence_ID,
-            self.project_name,
+            self.project_name + str(self.main_sequence_ID),
             aj.DMD_4500_DEVICE_TYPE,
             aj.SEQ_TYPE_PRELOAD,
             seqRepCount
@@ -94,6 +95,7 @@ class DMD:
         _, sequence_was_found = self._project.FindSequence(self.main_sequence_ID)
         if not sequence_was_found:
             raise IOError('Sequence not found on device')
+        
 
     def add_sub_sequence(self, npImage : np.array, seqID : int):
         "Add sequence to the main sequence"
@@ -102,11 +104,15 @@ class DMD:
         self._project.AddSequenceItem(seqItem)
         # create two frames and add them to the project
         # (added to the last sequence item in the sequence)
-        frame = aj.Frame(seqID)
-        self._project.AddFrame(frame)
         myImage = aj.Image(seqID)
         # load the NumPy image into the Image object and convert it to DMD 4500 format
         myImage.ReadFromMemory(npImage, 8, aj.ROW_MAJOR_ORDER, aj.DMD_4500_DEVICE_TYPE)
+        self._project.AddImage(myImage)
+
+        frame = aj.Frame(1)
+        frame.SetImageID(seqID)
+        frame.SetFrameTimeMSec(1000)
+        self._project.AddFrame(frame)
 
 
     def create_trigger_rules(self, controller_index: int):
@@ -122,19 +128,6 @@ class DMD:
         # add the trigger rule to the project
         self._project.AddTriggerRule(rule)
 
-    def insert_images(self, images: list[np.ndarray]) -> None:
-        """Insert images into the project"""
-        if self._project is None:
-            raise SystemError('Project must be created before images are inserted')
-        for image_count, b_image in enumerate(images, start=1):
-            # Get handle
-            image = aj.Image(image_count)
-            # Insert into handle
-            image.ReadFromMemory(b_image, 8, aj.ROW_MAJOR_ORDER, aj.DMD_4500_DEVICE_TYPE)
-            # Add to project
-            self._project.AddImage(image)
-        self.total_frames = len(images)
-
     def stop_projecting(self) -> None:
         """Stop projecting"""
         self._system.GetDriver().StopSequence(self.dmd_index)
@@ -145,7 +138,7 @@ class DMD:
         self._system.GetDriver().WaitForLoadComplete(-1)
         # Start the current sequence
         # StartSequence(uint sequenceID, int deviceID, uint reportingFreq=1) 
-        self._system.GetDriver().StartSequence(self.sequence_ID, self.dmd_index, 1)
+        self._system.GetDriver().StartSequence(self.main_sequence_ID, self.dmd_index, 1)
         # Wait to start running
         while self._system.GetDeviceState(self.dmd_index).RunState() != aj.RUN_STATE_RUNNING:
             pass
