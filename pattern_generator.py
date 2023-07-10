@@ -15,13 +15,11 @@ import pickle
 import ajiledriver as aj
 
 # create an image with ID 1
-#myImage = aj.Image(1)
-# load the NumPy image into the Image object and convert it to DMD 4500 format
-#myImage.ReadFromMemory(npImage, 8, aj.ROW_MAJOR_ORDER, aj.DMD_4500_DEVICE_TYPE)
 #cv2.rectangle(npImage, (0, 0), (100, 100), 255)
 
 
-def save_image(image : np.array, file_name : str = "file_name"):
+def save_image(image : np.array, file_name : str):
+    """Saves an array as a pickle file in the given relative path"""
     with open("./patterns/"+ file_name +".pickle","wb") as handle:
         pickle.dump(image, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
@@ -35,6 +33,7 @@ def one_side(side : str = "left") -> np.array:
     return npImage
 
 def horizontal_50_50() -> np.array:
+    """Flip first row of mirrors to left, second row to right..."""
     npImage = np.zeros(shape=(aj.DMD_IMAGE_HEIGHT_MAX, aj.DMD_IMAGE_WIDTH_MAX, 1), dtype=np.uint8)
     # npImage[::][::2] = 255
     for im in npImage:
@@ -42,6 +41,7 @@ def horizontal_50_50() -> np.array:
     return npImage
 
 def vertical_50_50() -> np.array:
+    """Flip first column of mirrors to left, second column to right..."""
     npImage = np.ones(shape=(aj.DMD_IMAGE_HEIGHT_MAX, aj.DMD_IMAGE_WIDTH_MAX, 1), dtype=np.uint8)*255
     npImage[::2] = npImage[::2]*0
     return npImage
@@ -56,6 +56,7 @@ def checkers() -> np.array:
     return npImage
 
 def create_all_patterns():
+    """Create and save all defined patterns"""
     save_image(one_side(),"left_side")
     save_image(one_side("right"),"right_side")
     save_image(horizontal_50_50(),"horizontal_50_50")

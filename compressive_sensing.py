@@ -164,5 +164,5 @@ def main():
 
 if __name__ == "__main__":
     global dmd
-    #dmd = DMD()
+    dmd = DMD()
     main()

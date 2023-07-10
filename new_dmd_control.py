@@ -69,6 +69,9 @@ class DMD:
         self.dmd_index = self._project.GetComponentIndexWithDeviceType(aj.DMD_4500_DEVICE_TYPE)
 
     def create_main_sequence(self, seqRepCount : int) -> None:
+        """
+        seqRepCount - repetitions of the main sequence
+        """
         """Creates a sequence, sequence item and frame object"""
         if self._project is None:
             raise SystemError("Project must be created before sequence is created")
@@ -97,21 +100,30 @@ class DMD:
             raise IOError('Sequence not found on device')
         
 
-    def add_sub_sequence(self, npImage : np.array, seqID : int):
+    def add_sub_sequence(self, npImage : np.array, seqID : int, frameTime : int = 1000):
+        """
+        npImage - np.array image
+        seqID - ID of the sequence, starts with 1 and is incremented by 1
+        frameTime - frame time in MILIseconds
+        """
         "Add sequence to the main sequence"
         # public SequenceItem(ushort sequenceID, uint sequenceItemRepeatCount)
         seqItem = aj.SequenceItem(seqID, 1)
         self._project.AddSequenceItem(seqItem)
         # create two frames and add them to the project
         # (added to the last sequence item in the sequence)
+        """ I believe each Image has to have unique ID 
+        - maybe if we have N images, we can load them and create a pattern from these let,s say (n1,n2,n3,n1,n2,n3,n4,n5...)
+        without loading n1, n2... multiple times"""
         myImage = aj.Image(seqID)
         # load the NumPy image into the Image object and convert it to DMD 4500 format
         myImage.ReadFromMemory(npImage, 8, aj.ROW_MAJOR_ORDER, aj.DMD_4500_DEVICE_TYPE)
         self._project.AddImage(myImage)
 
+        # Define frame related to an image 
         frame = aj.Frame(1)
         frame.SetImageID(seqID)
-        frame.SetFrameTimeMSec(1000)
+        frame.SetFrameTimeMSec(frameTime) # Miliseconds
         self._project.AddFrame(frame)
 
 
@@ -132,13 +144,16 @@ class DMD:
         """Stop projecting"""
         self._system.GetDriver().StopSequence(self.dmd_index)
 
-    def start_projecting(self) -> None:
-        """Load project, and start sequence"""
+    def start_projecting(self, reportingFreq : int) -> None:
+        """
+        Load project, and start sequence
+        reportingFreq - reporting frequency (must be greater than 0)
+        """
         self._system.GetDriver().LoadProject(self._project)
         self._system.GetDriver().WaitForLoadComplete(-1)
         # Start the current sequence
         # StartSequence(uint sequenceID, int deviceID, uint reportingFreq=1) 
-        self._system.GetDriver().StartSequence(self.main_sequence_ID, self.dmd_index, 1)
+        self._system.GetDriver().StartSequence(self.main_sequence_ID, self.dmd_index, reportingFreq)
         # Wait to start running
         while self._system.GetDeviceState(self.dmd_index).RunState() != aj.RUN_STATE_RUNNING:
             pass
