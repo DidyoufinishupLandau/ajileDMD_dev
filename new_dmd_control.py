@@ -14,7 +14,7 @@ import ajiledriver as aj
 from warnings import warn
 import cv2
 
-class DMD:
+class DMDdriver:
     """Class defined to wrap Ajile DMD controller."""
     # Constants
     HEIGHT: int = aj.DMD_IMAGE_HEIGHT_MAX

@@ -11,7 +11,7 @@ DMD is supposed to load once and run in a loop so user can create a sequence.
 """
 
 import ajiledriver as aj
-from new_dmd_control import DMD
+from new_dmd_control import DMDdriver
 import os
 import numpy as np
 import pickle
@@ -111,5 +111,5 @@ def main():
 
 if __name__ == "__main__":
     global dmd
-    dmd = DMD()
+    dmd = DMDdriver()
     main()
