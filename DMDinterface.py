@@ -9,7 +9,7 @@ it has all needed functionalities taken from the different files
 The purpose of this file is to provide details about the software,
 all functions must be commented well
 
-This class is supposed to be access using:  exec(open('file.py').read())
+This class is supposed to be access using:  exec(open('file.py').read()) or simply by importing it
 
 @author: Alex Kedziora
 """
@@ -32,8 +32,9 @@ class DMD:
 
     __loaded_patterns: list = [] ## List(str)
     __patterns_count: list = [] ## List(int)
-    __frame_time: int = 1 # (ms)
+    __frame_time: list = [] # List(int) (ms)
     __main_rep: int = 1 # repetition count of the main sequence
+    __reporting_freqency: int = 1
 
     def __init__(self) -> None:
         #__dmd = DMDdriver()
@@ -60,7 +61,7 @@ class DMD:
         pattern_param = {
             "patterns": config.get("pattern", "patterns"),
             "frames_count": config.get("pattern", "frames_count"),
-            "frame_time": config.getint("pattern", "frame_time"),
+            "frame_time": config.get("pattern", "frame_time"),
             "main_seq_rep": config.getint("pattern", "main_seq_rep"),
             }
 
@@ -72,6 +73,11 @@ class DMD:
         print("The list of patterns available:")
         for i in range(len(patterns)):
             print(str(i) + " : " + patterns[i])
+
+    def __add_image_to_seq(self, patternName : str, frameTime : int = 10) -> None:
+        image : np.array
+        image = pickle.load(open("./patterns/" + patternName, 'rb'))
+        self.add_image_to_seq(image,frameTime)
 
 
 
@@ -88,12 +94,14 @@ class DMD:
         # Add image to the main sequence (currently selected sequence) 
         self.__dmd.add_sub_sequence(npImage, self.__IMAGE_ID, frameTime)
         self.__IMAGE_ID += 1
-
-    def add_image_to_seq(self, patternName : str, frameTime : int = 10) -> None:
-            image : np.array
-            image = pickle.load(open("./patterns/" + patternName + ".pickle", 'rb'))
-            self.add_image_to_seq(image,frameTime)
-
+    
+    """def add_image_to_seq(self, patternName : str, frameTime : int = 10) -> None:
+        self.__loaded_patterns.append(patternName)
+        self.__frame_time.append(frameTime)"""
+    
+    def add_image_to_seq(self, patternID : int, frameTime : int = 10) -> None:
+        self.__loaded_patterns.append(self.__patterns[patternID])
+        self.__frame_time.append(frameTime)
 
     def set_frame_time(self, time : int) -> None:
         self.__frame_time = time
@@ -106,16 +114,29 @@ class DMD:
 
     def show_patterns(self) -> None:
         self.__print_list(self.__patterns)
+
+    def set_reporting_frequency(self, freq: int):
+        self.__reporting_freqency = freq
     
+    def info(self):
+        print("loaded pattens: " + self.__loaded_patterns)
+        print("Repetition count of each pattern: " + self.__patterns_count)
+        print("Time of each frame: " + self.__frame_time)
+        print("Repetition count of the main sequence: " + self.__main_rep)
+        print("Reporting frequency: " + self.__reporting_freqency)
+
     ## I think I should load everything here
     # use loaded_patterns to create an image, and in add_image just put it into loaded_patterns list
     def create_project(self) -> None:
         self.__dmd.create_project()
         self.__dmd.create_main_sequence(self.__main_rep)
+        for i in range(len(self.__loaded_patterns)):
+            self.__add_image_to_seq(self.__loaded_patterns[i], self.__frame_time[i])
 
     def run(self) -> None:
-        self.__dmd.start_projecting()
+        self.__dmd.start_projecting(self.__reporting_freqency)
 
     def stop(self) -> None:
         self.__dmd.stop_projecting()
     
+
