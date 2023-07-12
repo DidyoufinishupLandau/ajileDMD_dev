@@ -123,7 +123,7 @@ class DMDdriver:
         # Define frame related to an image 
         frame = aj.Frame(1)
         frame.SetImageID(seqID)
-        frame.SetFrameTimeMSec(frameTime) # Miliseconds
+        frame.SetFrameTimeMSec(int(frameTime)) # Miliseconds
         self._project.AddFrame(frame)
 
 
@@ -144,7 +144,7 @@ class DMDdriver:
         """Stop projecting"""
         self._system.GetDriver().StopSequence(self.dmd_index)
 
-    def start_projecting(self, reportingFreq : int) -> None:
+    def start_projecting(self, reportingFreq : int = 1) -> None:
         """
         Load project, and start sequence
         reportingFreq - reporting frequency (must be greater than 0)

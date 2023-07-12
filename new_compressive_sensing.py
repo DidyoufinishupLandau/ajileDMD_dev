@@ -29,7 +29,8 @@ def load_list_images() -> list:
 
 def add_image_to_seq(npImage : np.array, imageID : int) -> None:
     # Add image to the main sequence (currently selected sequence) 
-    dmd.add_sub_sequence(npImage, imageID)
+    time: int = input("Time of the frame (ms): ")
+    dmd.add_sub_sequence(npImage, imageID, int(time))
 
 def print_list(patterns : list) -> None:
     # Prints all items in the lsit 
@@ -64,7 +65,6 @@ def switch_menu() -> int:
         continue_loop = True
         while(continue_loop):
             os.system('cls')
-            print(len(patterns))
             inp = input("Add another sequence [y/n]: ")
             if(inp == "y"):
                 imageID += 1
@@ -81,7 +81,7 @@ def switch_menu() -> int:
     elif(option == "3"):
         dmd.stop_projecting()
         # Load the defined project, and wait for completion
-        dmd.start_projecting()
+        dmd.start_projecting(10)
         input("Press Enter to stop the sequence")
         dmd.stop_projecting()
         return 0
@@ -113,3 +113,4 @@ if __name__ == "__main__":
     global dmd
     dmd = DMDdriver()
     main()
+
