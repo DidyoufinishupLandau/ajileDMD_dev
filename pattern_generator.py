@@ -55,6 +55,11 @@ def checkers() -> np.array:
                 npImage[i][j] = 255
     return npImage
 
+def random_50_50() -> np.array:
+    # Generate numbers from 0 to 1 sorted as an array (then multiply by 255)
+    npImage = np.random.randint(2,size=(aj.DMD_IMAGE_HEIGHT_MAX, aj.DMD_IMAGE_WIDTH_MAX,1), dtype=np.uint8)*255
+    return npImage
+
 def create_all_patterns():
     """Create and save all defined patterns"""
     save_image(one_side(),"left_side")
@@ -62,3 +67,4 @@ def create_all_patterns():
     save_image(horizontal_50_50(),"horizontal_50_50")
     save_image(vertical_50_50(),"vertical_50_50")
     save_image(checkers(),"checkers")
+    save_image(random_50_50(), "random_50_50")

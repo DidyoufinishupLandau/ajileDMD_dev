@@ -15,6 +15,7 @@ from new_dmd_control import DMDdriver
 import os
 import numpy as np
 import pickle
+import pattern_generator as pg
 
 
 def load_list_images() -> list:
@@ -46,17 +47,24 @@ def switch_menu() -> int:
     imageID = 0
     image = np.array
     print("Options:")
+    print("0: Generate new patterns")
     print("1: Create new main sequence")
     print("2: Create subsequences")
     print("3: Run")
-    print("4: Exit")
+    print("4: Clean the sequence")
+    print("5: Exit")
     option = input("Select option: ")
+
 
     # Create new sequence (not needed if only one main sequence is loaded)
     if(option == "1"):
         dmd.create_project()
         dmd.create_main_sequence(5)
         print("The main sequence ID is: " + dmd.main_sequence_ID)
+        return 0
+    
+    elif(option == "0"):
+        pg.create_all_patterns()
         return 0
     
     # Create subsequence (main option to create a list of patterns to display)
@@ -85,9 +93,13 @@ def switch_menu() -> int:
         input("Press Enter to stop the sequence")
         dmd.stop_projecting()
         return 0
+
+    # Clean the sequence (need to write the code)
+    elif(option == "4"):
+        return -1
     
     # Exit
-    elif(option == "4"):
+    elif(option == "5"):
         return -1
 
     # Non-existing option given = exit
@@ -95,7 +107,10 @@ def switch_menu() -> int:
 
 def main():
     dmd.create_project()
-    dmd.create_main_sequence(5)
+
+    repSeq: int = input("Repetition count of the main sequence (0 means infinity): ")
+
+    dmd.create_main_sequence(int(repSeq)) # 0 means infinity
     print("Project and initial sequence are created")
 
     option = 0
