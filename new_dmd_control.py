@@ -126,6 +126,35 @@ class DMDdriver:
         frame.SetFrameTimeMSec(int(frameTime)) # Miliseconds
         self._project.AddFrame(frame)
 
+    def add_sub_sequence_list(self, npImages : list[np.array], frameTime : int = 1000):
+        """
+        npImage - np.array image
+        seqID - ID of the sequence, starts with 1 and is incremented by 1
+        frameTime - frame time in MILIseconds
+        """
+        "Add sequence to the main sequence"
+        # public SequenceItem(ushort sequenceID, uint sequenceItemRepeatCount)
+        seqID = 1
+        for i in range(len(npImages)):
+            seqID = i+1
+            seqItem = aj.SequenceItem(seqID, 1)
+            self._project.AddSequenceItem(seqItem)
+            # create two frames and add them to the project
+            # (added to the last sequence item in the sequence)
+            """ I believe each Image has to have unique ID 
+            - maybe if we have N images, we can load them and create a pattern from these let,s say (n1,n2,n3,n1,n2,n3,n4,n5...)
+            without loading n1, n2... multiple times"""
+            myImage = aj.Image(seqID)
+            # load the NumPy image into the Image object and convert it to DMD 4500 format
+            myImage.ReadFromMemory(npImages[i], 8, aj.ROW_MAJOR_ORDER, aj.DMD_4500_DEVICE_TYPE)
+            self._project.AddImage(myImage)
+
+            # Define frame related to an image 
+            frame = aj.Frame(1)
+            frame.SetImageID(seqID)
+            frame.SetFrameTimeMSec(int(frameTime)) # Miliseconds
+            self._project.AddFrame(frame)
+
 
     def create_trigger_rules(self, controller_index: int):
         """Create a trigger rule to connect the DMD frame started to the external output trigger"""

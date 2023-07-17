@@ -28,6 +28,16 @@ def load_list_images() -> list:
             patterns.append(file)
     return patterns
 
+def load_list_images_list() -> list:
+    # Loads file NAMES present in ./patterns
+    # All paterns should be created before hand using pattern_generator.py
+    patterns = []
+    for file in os.listdir("./patterns/lists"):
+        # Check whether file is in pickle format or not
+        if file.endswith(".pickle"):
+            patterns.append(file)
+    return patterns
+
 def add_image_to_seq(npImage : np.array, imageID : int) -> None:
     # Add image to the main sequence (currently selected sequence) 
     time: int = input("Time of the frame (ms): ")
@@ -46,6 +56,7 @@ def switch_menu() -> int:
     # switch-case not defined in py3.8, available in py3.10
     imageID = 0
     image = np.array
+    images: list[np.array]
     print("Options:")
     print("0: Generate new patterns")
     print("1: Create new main sequence")
@@ -53,6 +64,7 @@ def switch_menu() -> int:
     print("3: Run")
     print("4: Clean the sequence")
     print("5: Exit")
+    print("6: Add list")
     option = input("Select option: ")
 
 
@@ -101,6 +113,22 @@ def switch_menu() -> int:
     # Exit
     elif(option == "5"):
         return -1
+    
+    # Add list
+    elif(option == "6"):
+        patterns = load_list_images_list()
+        continue_loop = True
+        os.system('cls')
+
+        print_list(patterns)
+        pattID = int
+        pattID = input("Select ID of the patterns to add it to the main sequence: ")
+        images = pickle.load(open("./patterns/lists/" + patterns[int(pattID)], 'rb'))
+        freq: int = int(input("Frame time of each sequence: "))
+        dmd.add_sub_sequence_list(images, freq)
+
+        return 0
+
 
     # Non-existing option given = exit
     return -1

@@ -180,6 +180,6 @@ def create_all_patterns():
     #save_image_list(list_38_38(), "38_38")
     #save_image_list(list_57_57(), "57_57")
     #save_image_list(list_76_76(), "76_76")
-    save_image_list(list_114_114(), "114_114")
+    #save_image_list(list_114_114(), "114_114")
 
 create_all_patterns()

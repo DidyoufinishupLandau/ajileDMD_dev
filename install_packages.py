@@ -15,8 +15,11 @@ import subprocess
 """subprocess.check_call([sys.executable, '-m', 'pip', 'install', 
 'opencv-python'])"""
 subprocess.check_call([sys.executable, '-m', 'pip', 'install', 
+'pyserial'])
+"""
+subprocess.check_call([sys.executable, '-m', 'pip', 'install', 
 'configdict'])
 subprocess.check_call([sys.executable, '-m', 'pip', 'install', 
 'scipy'])
 subprocess.check_call([sys.executable, '-m', 'pip', 'install', 
-'numpy'])
+'numpy'])"""
