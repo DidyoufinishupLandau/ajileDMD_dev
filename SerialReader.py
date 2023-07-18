@@ -11,7 +11,21 @@ Reads data from Arduino
 import serial
 
 class ArduinoUNO:
-    ser: serial
+    ser: serial.Serial
 
-    def __init__(COM:str):
-        ser = serial.Serial(COM, 115200, timeout=1)
+    def __init__(self,COM:str):
+        self.ser = serial.Serial(COM, 115200, timeout=2)
+
+    def Read(self):
+        return self.ser.readline() # Read the data (looks for terminating character '/r/n')
+    
+
+def main():
+    ar = ArduinoUNO("COM3")
+
+    while(True):
+        text = ar.Read()
+        if(len(text) != 0):
+            print(text)
+
+main()
