@@ -16,6 +16,7 @@ import os
 import numpy as np
 import pickle
 import pattern_generator as pg
+import sys
 
 
 def load_list_images() -> list:
@@ -65,6 +66,7 @@ def switch_menu() -> int:
     print("4: Clean the sequence")
     print("5: Exit")
     print("6: Add list")
+    print("7: Set triggers and run")
     option = input("Select option: ")
 
 
@@ -126,9 +128,12 @@ def switch_menu() -> int:
         images = pickle.load(open("./patterns/lists/" + patterns[int(pattID)], 'rb'))
         freq: int = int(input("Frame time of each sequence: "))
         dmd.add_sub_sequence_list(images, freq)
+        return 0
+    
+    elif(option == "7"):
+        dmd.my_trigger()
 
         return 0
-
 
     # Non-existing option given = exit
     return -1

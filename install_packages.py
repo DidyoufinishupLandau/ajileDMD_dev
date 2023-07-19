@@ -14,8 +14,10 @@ import subprocess
 # implement pip as a subprocess:
 """subprocess.check_call([sys.executable, '-m', 'pip', 'install', 
 'opencv-python'])"""
+#subprocess.check_call([sys.executable, '-m', 'pip', 'install', 
+#'pyserial'])
 subprocess.check_call([sys.executable, '-m', 'pip', 'install', 
-'pyserial'])
+'ipykernel'])
 """
 subprocess.check_call([sys.executable, '-m', 'pip', 'install', 
 'configdict'])

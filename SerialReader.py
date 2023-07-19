@@ -9,12 +9,12 @@ Reads data from Arduino
 """
 
 import serial
-
+import time
 class ArduinoUNO:
     ser: serial.Serial
 
     def __init__(self,COM:str):
-        self.ser = serial.Serial(COM, 115200, timeout=2)
+        self.ser = serial.Serial(COM, 9600, timeout=2) # MAX 115200
 
     def Read(self):
         return self.ser.readline() # Read the data (looks for terminating character '/r/n')

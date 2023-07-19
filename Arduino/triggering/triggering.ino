@@ -1,27 +1,50 @@
 // Pins
-int DMDpinOUT = 13;
-int DMDpinIN = 12;
+int FROM_DMD_OUT_pin = 13; // connected to DMD output
+int TO_DMD_IN_pin = 12; // connected to DMD input
 
-int PDvaluepin = A0;
+int PDvalue_pin = A0;
 
 // Values
-float PDvalue;
+int PDvalue;
+int DMDout;
 
 
 void setup() {
-  Serial.begin(115200); // max baud rate for UNO
-  pinMode(DMDpinOUT, OUTPUT);  // sets the digital pin 13 as output
-  pinMode(DMDpinIN, INPUT);    // sets the digital pin 12 as input
+  Serial.begin(9600); // max baud rate for UNO
+  pinMode(FROM_DMD_OUT_pin, INPUT);  // sets the digital pin 13 as arduino input
+  pinMode(TO_DMD_IN_pin, OUTPUT);    // sets the digital pin 12 as arduino output
+  DMDout = HIGH;
 }
 
 void loop() {
-  int DMDout = digitalRead(DMDpinOUT);
+  /*
+  // Test for PD
+  PDvalue = analogRead(PDvalue_pin);
+  Serial.println(PDvalue); // convert this later to some meaningful value
+  */
+  // Test for DMD
+  // **** For testing - I must see change in sequence every 0.5s
+  digitalWrite(TO_DMD_IN_pin, HIGH);
+  //delay(250); // I don;t know how long should be the triggering pulse
+  digitalWrite(TO_DMD_IN_pin, LOW);
+  //
+  if(DMDout == HIGH){
+    PDvalue = analogRead(PDvalue_pin);
+    Serial.println(PDvalue); // convert this later to some meaningful value
+    
+  }
+  //DMDout = digitalRead(FROM_DMD_OUT_pin);
+
+  /*
+  // Actuall code
   if(DMDout == HIGH){
     PDvalue = analogRead(PDvaluepin);
     Serial.println(PDvalue); // convert this later to some meaningful value
     
-    digitalWrite(DMDpinIN, HIGH);
-    delay(50); // I don;t know how long should be the triggering pulse
-    digitalWrite(DMDpinIN, LOW);
+    digitalWrite(TO_DMD_IN_pin, HIGH);
+    delay(250); // I don;t know how long should be the triggering pulse
+    digitalWrite(TO_DMD_IN_pin, LOW);
   }
+  DMDout = digitalRead(FROM_DMD_OUT_pin);
+  */
 }

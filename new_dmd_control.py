@@ -169,6 +169,20 @@ class DMDdriver:
         # add the trigger rule to the project
         self._project.AddTriggerRule(rule)
 
+    def my_trigger(self, controllerIndex: int=0):
+        dmdIndex = self._project.GetComponentIndexWithDeviceType(aj.DMD_4500_DEVICE_TYPE)
+        dmdFrameStartedToExtTrigOut = aj.TriggerRule()
+        dmdFrameStartedToExtTrigOut.AddTriggerFromDevice(aj.TriggerRulePair(dmdIndex, aj.FRAME_STARTED))
+        dmdFrameStartedToExtTrigOut.SetTriggerToDevice(aj.TriggerRulePair(controllerIndex, aj.EXT_TRIGGER_OUTPUT_1))
+        # add the trigger rule to the project
+        self._project.AddTriggerRule(dmdFrameStartedToExtTrigOut)
+
+        extTrigInToDMDStartFrame = aj.TriggerRule()
+        extTrigInToDMDStartFrame.AddTriggerFromDevice(aj.TriggerRulePair(controllerIndex, aj.EXT_TRIGGER_INPUT_1))
+        extTrigInToDMDStartFrame.SetTriggerToDevice(aj.TriggerRulePair(dmdIndex, aj.START_FRAME))
+        # add the trigger rule to the project
+        self._project.AddTriggerRule(extTrigInToDMDStartFrame)
+
     def stop_projecting(self) -> None:
         """Stop projecting"""
         self._system.GetDriver().StopSequence(self.dmd_index)
