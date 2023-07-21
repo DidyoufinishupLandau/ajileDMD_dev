@@ -67,6 +67,7 @@ def switch_menu() -> int:
     print("5: Exit")
     print("6: Add list")
     print("7: Set triggers and run")
+    print("8: Multiple with OFF image")
     option = input("Select option: ")
 
 
@@ -132,7 +133,22 @@ def switch_menu() -> int:
     
     elif(option == "7"):
         dmd.my_trigger()
+        dmd.run_example()
+        return 0
+    
+    elif(option == "8"):
+        patterns = load_list_images_list()
+        continue_loop = True
+        os.system('cls')
 
+        offImage = pickle.load(open("./patterns/" + "right_side.pickle", 'rb'))
+
+        print_list(patterns)
+        pattID = int
+        pattID = input("Select ID of the patterns to add it to the main sequence: ")
+        images = pickle.load(open("./patterns/lists/" + patterns[int(pattID)], 'rb'))
+        freq: int = int(input("Frame time of each sequence: "))
+        dmd.multiple_patterns_sequence(images, offImage, int(freq))
         return 0
 
     # Non-existing option given = exit

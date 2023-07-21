@@ -13,6 +13,7 @@ import numpy as np
 import ajiledriver as aj
 from warnings import warn
 import cv2
+import example_helper
 
 class DMDdriver:
     """Class defined to wrap Ajile DMD controller."""
@@ -156,7 +157,7 @@ class DMDdriver:
             self._project.AddFrame(frame)
 
 
-    def create_trigger_rules(self, controller_index: int):
+    def create_trigger_rules(self, controller_index: int) -> None:
         """Create a trigger rule to connect the DMD frame started to the external output trigger"""
         if self._project is None:
             raise IOError('Project must be defined before trigger is created')
@@ -176,7 +177,7 @@ class DMDdriver:
         outputTriggerSettings = self._project.Components()[controllerIndex].OutputTriggerSettings()
         for index in range(len(outputTriggerSettings)):
             outputTriggerSettings[index] = aj.ExternalTriggerSetting(aj.RISING_EDGE, aj.FromMSec(1/16))
-            #inputTriggerSettings[index] = aj.ExternalTriggerSetting(aj.RISING_EDGE, aj.FromMSec(1))
+            #inputTriggerSettings[index] = aj.ExternalTriggerSetting(aj.RISING_EDGE)
         self._project.SetTriggerSettings(controllerIndex, inputTriggerSettings, outputTriggerSettings)
 
         dmdFrameStartedToExtTrigOut = aj.TriggerRule()
@@ -184,14 +185,53 @@ class DMDdriver:
         dmdFrameStartedToExtTrigOut.SetTriggerToDevice(aj.TriggerRulePair(controllerIndex, aj.EXT_TRIGGER_OUTPUT_1))
         # add the trigger rule to the project
         self._project.AddTriggerRule(dmdFrameStartedToExtTrigOut)
-        # This part doesn't work quite right (probably wiring issue)
         """
+        # This part doesn't work quite right (probably wiring issue)
         extTrigInToDMDStartFrame = aj.TriggerRule()
         extTrigInToDMDStartFrame.AddTriggerFromDevice(aj.TriggerRulePair(controllerIndex, aj.EXT_TRIGGER_INPUT_1))
         extTrigInToDMDStartFrame.SetTriggerToDevice(aj.TriggerRulePair(dmdIndex, aj.START_FRAME))
         # add the trigger rule to the project
-        self._project.AddTriggerRule(extTrigInToDMDStartFrame)
-        """
+        self._project.AddTriggerRule(extTrigInToDMDStartFrame)"""
+        
+    def multiple_patterns_sequence(self, npImages : list[np.array], offImage : np.array, frameTime : int = 1) -> None:
+        # Image ID 1 - off image
+        myOffImage = aj.Image(1)
+        myOffImage.ReadFromMemory(offImage, 8, aj.ROW_MAJOR_ORDER, aj.DMD_4500_DEVICE_TYPE)
+        self._project.AddImage(myOffImage)
+
+        # Create single sequence - seq ID 1
+        seqItem = aj.SequenceItem(1, 1)
+        self._project.AddSequenceItem(seqItem)
+        
+        # ID range : 2 -> len(images) + 1
+        for i in range(len(npImages)):
+            # Start with 2
+            seqID = i+2
+            # create two frames and add them to the project
+            # (added to the last sequence item in the sequence)
+            """ I believe each Image has to have unique ID 
+            - maybe if we have N images, we can load them and create a pattern from these let,s say (n1,n2,n3,n1,n2,n3,n4,n5...)
+            without loading n1, n2... multiple times"""
+            myImage = aj.Image(seqID)
+            # load the NumPy image into the Image object and convert it to DMD 4500 format
+            myImage.ReadFromMemory(npImages[i], 8, aj.ROW_MAJOR_ORDER, aj.DMD_4500_DEVICE_TYPE)
+            self._project.AddImage(myImage)
+
+        for i in range(len(npImages)):
+            # Define frame related to an image 
+            frame = aj.Frame()
+            frame.SetSequenceID(1)
+            # Off image
+            frame.SetImageID(1)
+            frame.SetFrameTimeMSec(frameTime)
+            self._project.AddFrame(frame)
+
+            frame = aj.Frame()
+            frame.SetSequenceID(1)
+            frame.SetImageID(i+2)
+            frame.SetFrameTimeMSec(frameTime)
+            self._project.AddFrame(frame)
+
 
     def stop_projecting(self) -> None:
         """Stop projecting"""
@@ -210,3 +250,12 @@ class DMDdriver:
         # Wait to start running
         while self._system.GetDeviceState(self.dmd_index).RunState() != aj.RUN_STATE_RUNNING:
             pass
+
+
+    def ReturnProject(self, sequenceID=1, sequenceRepeatCount=0, frameTime_ms=-1, components=None):
+        return self._project
+
+
+    def run_example(self) -> None:
+        # The project must be already set up
+        example_helper.RunExample(self.ReturnProject)
