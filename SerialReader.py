@@ -10,6 +10,8 @@ Reads data from Arduino
 
 import serial
 import time
+import csv
+
 class ArduinoUNO:
     ser: serial.Serial
 
@@ -20,14 +22,24 @@ class ArduinoUNO:
         return self.ser.readline() # Read the data (looks for terminating character '/r/n')
     
 
+def save_data(li : list):
+    with open('data.csv', 'w') as f:
+    # using csv.writer method from CSV package
+        write = csv.writer(f)
+        write.writerow(li)
+
 def main():
+    data: list = []
     ar = ArduinoUNO("COM3")
-    i = 0
-    while(True):
+    start = time.time()
+    con = True
+    while(con ):
         text = ar.Read()
+        end = time.time()
         if(len(text) != 0):
-            print(text)
-            i += 1
-            print(i)
+            data.append(text)
+        if(end-start > 20):
+            con = False
+    save_data(data)
 
 main()

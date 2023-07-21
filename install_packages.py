@@ -16,8 +16,10 @@ import subprocess
 'opencv-python'])"""
 #subprocess.check_call([sys.executable, '-m', 'pip', 'install', 
 #'pyserial'])
+#subprocess.check_call([sys.executable, '-m', 'pip', 'install', 
+#'ipykernel'])
 subprocess.check_call([sys.executable, '-m', 'pip', 'install', 
-'ipykernel'])
+'matplotlib'])
 """
 subprocess.check_call([sys.executable, '-m', 'pip', 'install', 
 'configdict'])

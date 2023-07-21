@@ -185,13 +185,13 @@ class DMDdriver:
         dmdFrameStartedToExtTrigOut.SetTriggerToDevice(aj.TriggerRulePair(controllerIndex, aj.EXT_TRIGGER_OUTPUT_1))
         # add the trigger rule to the project
         self._project.AddTriggerRule(dmdFrameStartedToExtTrigOut)
-        """
+
         # This part doesn't work quite right (probably wiring issue)
         extTrigInToDMDStartFrame = aj.TriggerRule()
         extTrigInToDMDStartFrame.AddTriggerFromDevice(aj.TriggerRulePair(controllerIndex, aj.EXT_TRIGGER_INPUT_1))
         extTrigInToDMDStartFrame.SetTriggerToDevice(aj.TriggerRulePair(dmdIndex, aj.START_FRAME))
         # add the trigger rule to the project
-        self._project.AddTriggerRule(extTrigInToDMDStartFrame)"""
+        self._project.AddTriggerRule(extTrigInToDMDStartFrame)
         
     def multiple_patterns_sequence(self, npImages : list[np.array], offImage : np.array, frameTime : int = 1) -> None:
         # Image ID 1 - off image

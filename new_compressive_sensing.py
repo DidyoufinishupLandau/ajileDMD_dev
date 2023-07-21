@@ -133,7 +133,7 @@ def switch_menu() -> int:
     
     elif(option == "7"):
         dmd.my_trigger()
-        #dmd.run_example()
+        dmd.run_example()
         return 0
     
     elif(option == "8"):
@@ -142,7 +142,7 @@ def switch_menu() -> int:
         os.system('cls')
 
         # Off should be right side - left side is for testing (aims to PD)
-        offImage = pickle.load(open("./patterns/" + "left_side.pickle", 'rb'))
+        offImage = pickle.load(open("./patterns/" + "right_side.pickle", 'rb'))
 
         print_list(patterns)
         pattID = int

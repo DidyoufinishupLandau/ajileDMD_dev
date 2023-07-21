@@ -24,17 +24,17 @@ void loop() {
   */
   // Test for DMD
   // **** For testing - I must see change in sequence every 0.5s
-    
+   /*
   DMDout = digitalRead(FROM_DMD_OUT_pin); // trigger timeframe is 1/16 ms
 
   if(DMDout == HIGH){
     Serial.println(analogRead(PDvalue_pin)); // convert this later to some meaningful value
-  }
-  /*
+  }*/
+  
     digitalWrite(TO_DMD_IN_pin, HIGH);
     delay(1); // I don;t know how long should be the triggering pulse
     digitalWrite(TO_DMD_IN_pin, LOW);
-    delay(1000);*/
+    delay(500);
   //
   /*if(DMDout == HIGH){
     PDvalue = analogRead(PDvalue_pin);
