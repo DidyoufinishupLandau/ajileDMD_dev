@@ -258,4 +258,23 @@ class DMDdriver:
 
     def run_example(self) -> None:
         # The project must be already set up
-        example_helper.RunExample(self.ReturnProject)
+        # stop any existing project from running on the device
+        self._system.GetDriver().StopSequence(self.dmd_index)
+
+        # load the project to the device
+        self._system.GetDriver().LoadProject(self._project)
+        self._system.GetDriver().WaitForLoadComplete(-1)
+
+        for sequenceID, sequence in self._project.Sequences().iteritems():
+
+            # if using region-of-interest, switch to 'lite mode' to disable lighting/triggers and allow DMD to run faster
+            roiWidthColumns = sequence.SequenceItems()[0].Frames()[0].RoiWidthColumns()
+            if roiWidthColumns > 0 and roiWidthColumns < aj.DMD_IMAGE_WIDTH_MAX:
+                self._system.GetDriver().SetLiteMode(True, self.dmd_index)
+                
+
+            self._system.GetDriver().StartSequence(sequence.ID(), self.dmd_index)
+
+            # wait for the sequence to start
+            print ("Waiting for sequence %d to start" % (sequence.ID(),))
+            while self._system.GetDeviceState(self.dmd_index).RunState() != aj.RUN_STATE_RUNNING: pass

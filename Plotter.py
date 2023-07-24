@@ -17,6 +17,7 @@ from collections import deque
 
 def heat_map(z : np.array):
     plt.imshow( z )
+    plt.colorbar()
     plt.show()
 
 def subtract(data):
@@ -50,7 +51,7 @@ def load_csv(path:str) -> list:
         data.append(float(item[0]))
     return data
 
-data = load_csv("data_38_38.csv")
+data = load_csv("data_19_19.csv")
 subtracted_data = subtract(data)
-sorted = (separate_data(subtracted_data, 38))
+sorted = (separate_data(subtracted_data, 19))
 heat_map(sorted)

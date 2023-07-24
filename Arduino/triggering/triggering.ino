@@ -7,6 +7,7 @@ int PDvalue_pin = A0;
 // Values
 int PDvalue;
 int DMDout;
+const float ADC_to_V = 5.0/1023; // Volts 
 
 
 void setup() {
@@ -14,6 +15,21 @@ void setup() {
   pinMode(FROM_DMD_OUT_pin, INPUT);  // sets the digital pin 13 as arduino input
   pinMode(TO_DMD_IN_pin, OUTPUT);    // sets the digital pin 12 as arduino output
   DMDout = LOW;
+}
+
+void acq(){
+  while(true){   
+    digitalWrite(TO_DMD_IN_pin, HIGH);
+    //delay(1/32); // I don;t know how long should be the triggering pulse - apparently it's not needed. Arduino is slow enought with switching the state so DMD can detect this trigger
+    digitalWrite(TO_DMD_IN_pin, LOW); 
+    delay(1/256);
+    DMDout = digitalRead(FROM_DMD_OUT_pin);
+    if(DMDout == HIGH){
+    PDvalue = analogRead(PDvalue_pin);
+    Serial.println(PDvalue); // convert this later to some meaningful value
+    
+  }
+  }
 }
 
 void loop() {
@@ -31,26 +47,23 @@ void loop() {
     Serial.println(analogRead(PDvalue_pin)); // convert this later to some meaningful value
   }*/
   
-    digitalWrite(TO_DMD_IN_pin, HIGH);
-    delay(1); // I don;t know how long should be the triggering pulse
-    digitalWrite(TO_DMD_IN_pin, LOW);
-    delay(500);
-  //
-  /*if(DMDout == HIGH){
+  digitalWrite(TO_DMD_IN_pin, HIGH);
+  //delay(1/32); // I don;t know how long should be the triggering pulse - apparently it's not needed. Arduino is slow enought with switching the state so DMD can detect this trigger
+  digitalWrite(TO_DMD_IN_pin, LOW); 
+  delay(1/256);
+  DMDout = digitalRead(FROM_DMD_OUT_pin);
+  if(DMDout == HIGH){
     PDvalue = analogRead(PDvalue_pin);
     Serial.println(PDvalue); // convert this later to some meaningful value
     
-  }*/
-  //DMDout = digitalRead(FROM_DMD_OUT_pin);
-
+  }
   /*
   // Actuall code
   if(DMDout == HIGH){
-    PDvalue = analogRead(PDvaluepin);
+    PDvalue = analogRead(PDvalue_pin);
     Serial.println(PDvalue); // convert this later to some meaningful value
     
     digitalWrite(TO_DMD_IN_pin, HIGH);
-    delay(250); // I don;t know how long should be the triggering pulse
     digitalWrite(TO_DMD_IN_pin, LOW);
   }
   DMDout = digitalRead(FROM_DMD_OUT_pin);

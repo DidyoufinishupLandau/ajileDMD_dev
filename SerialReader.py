@@ -23,16 +23,17 @@ class ArduinoUNO:
     
 
 def save_data(li : list):
-    with open('data.csv', 'w') as f:
+    with open('dataTEST6.csv', 'w') as f:
     # using csv.writer method from CSV package
         write = csv.writer(f)
-        write.writerow(li)
+        write.writerow([str(i).replace("b","").replace("\\r","").replace("\\n","").replace("'","").replace("\\xca",",") for i in li])
 
 def main():
     data: list = []
     ar = ArduinoUNO("COM3")
     start = time.time()
     con = True
+    i = 0
     while(con ):
         text = ar.Read()
         end = time.time()
