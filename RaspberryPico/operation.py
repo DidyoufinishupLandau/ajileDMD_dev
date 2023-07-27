@@ -1,16 +1,21 @@
 from machine import ADC, Pin
 import utime
-#import time
+import sys
 
 # Initialize
 FROM_DMD_OUT_pin = Pin(0, Pin.IN) # connected to DMD output
 TO_DMD_IN_pin = Pin(1, Pin.OUT) # connected to DMD input
 PD_pin = ADC(0) # connected to Photon Detector
 
+# Global variables
+_NO_OF_IMAGES: int = -1
+_DELAY: int = 0 # us
+_START: bool = False
+_READY_FOR_ACQ: bool = False
 
 def handle_interrupt(Pin):           #defining interrupt handling function
-    global READY_FOR_ACQ
-    READY_FOR_ACQ = True
+    global _READY_FOR_ACQ
+    _READY_FOR_ACQ: bool = True
 
 def read_PD() -> float:
     return PD_pin.read_u16()
@@ -26,21 +31,80 @@ def activate_input_trigger():
 def disable_input_trigger():
     FROM_DMD_OUT_pin.irq.deinit()
     
-def acquire(no_of_images : int) -> list:
+def acquire(no_of_images : int, delay: int) -> list:
     i = 0
     values : list = []
-    activate_input_trigger()
+    global _READY_FOR_ACQ
     
-    while(i < no_of_images):
-        if(READY_FOR_ACQ):
-            values.append(read_PD())
-            get_trigger()
-            i += 1
+    if(delay > 0):
+        while(i < no_of_images):
+            activate_input_trigger()
+            if(_READY_FOR_ACQ):
+                values.append(read_PD())
+                utime.sleep_us(delay)
+                _READY_FOR_ACQ = False
+                i += 1
+    else:
+        while(i < no_of_images):
+            activate_input_trigger()
+            if(_READY_FOR_ACQ):
+                values.append(read_PD())
+                _READY_FOR_ACQ = False
+                i += 1
             
-    disable_input_trigger()
+    #disable_input_trigger()
     return values
 
 
-def commands():
-    # Create a command list
+def commands(comm: str):
+    global _NO_OF_IMAGES
+    global _DELAY
+    global _START
+    led = Pin(25, Pin.OUT)
+    if("N_" in comm):
+       _NO_OF_IMAGES = int(comm.replace("N_",""))
+    if("D_" in comm and not("LED_" in comm)):
+        _DELAY = int(comm.replace("D_", ""))
+    if("S_" in comm):
+        if("TRUE" in comm):
+            _START = True
+        elif("FALSE" in comm):
+            _START = False
+    if("LED_ON" in comm):
+        print("on")
+        led.high()
+    if("LED_OFF" in comm):
+        print("off")
+        led.low()
+    if("INFO" in comm):
+        print("Number of images: ", _NO_OF_IMAGES)
+        print("Delay after a single data acquisition (us): ", _DELAY)
 
+def Read() -> str:
+    for line in sys.stdin:
+        return line
+
+def Write(data: list):
+    for item in data:
+        sys.stdout.write(item)
+
+def restart():
+    global _NO_OF_IMAGES
+    global _DELAY
+    global _START
+
+    _NO_OF_IMAGES = -1
+    _DELAY = 0
+    _START = False
+    
+def main():
+    global _START
+    while(True):
+        text = Read()
+        if(len(text) != 0):
+            commands(text)
+        if(_START):
+            Write(acquire(_NO_OF_IMAGES, _DELAY))
+            _START = False
+
+main()
