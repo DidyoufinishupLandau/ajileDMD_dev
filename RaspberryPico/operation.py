@@ -3,7 +3,7 @@ import utime
 import sys
 
 # Initialize
-FROM_DMD_OUT_pin = Pin(0, Pin.IN) # connected to DMD output
+FROM_DMD_OUT_pin = Pin(0, Pin.IN, Pin.PULL_DOWN) # connected to DMD output
 TO_DMD_IN_pin = Pin(1, Pin.OUT) # connected to DMD input
 PD_pin = ADC(0) # connected to Photon Detector
 
@@ -28,7 +28,7 @@ def send_trigger():
     TO_DMD_IN_pin.low() # or .value(0)
 
 def activate_input_trigger():
-    FROM_DMD_OUT_pin.irq(trigger=Pin.IRQ_RISING,handler=handle_interrupt) # Pin.IRQ_RISING makes input sensetive, Pin.IRQ_HIGH_LEVEL unavailable
+    FROM_DMD_OUT_pin.irq(trigger=Pin.IRQ_FALLING,handler=handle_interrupt) # Pin.IRQ_HIGH_LEVEL unavailable
     
 def disable_input_trigger():
     FROM_DMD_OUT_pin.irq.deinit()
@@ -41,7 +41,6 @@ def acquire(no_of_images : int, delay: int) -> list:
         while(i < no_of_images):
             activate_input_trigger()
             if(_READY_FOR_ACQ):
-                print("DD")
                 values.append(read_PD())
                 utime.sleep_us(delay)
                 _READY_FOR_ACQ = False
@@ -50,7 +49,6 @@ def acquire(no_of_images : int, delay: int) -> list:
         while(i < no_of_images):
             activate_input_trigger()
             if(_READY_FOR_ACQ):
-                print("DD")
                 values.append(read_PD())
                 _READY_FOR_ACQ = False
                 i += 1
@@ -121,7 +119,6 @@ def main():
             commands(text)
         if(_START):
             _DATA = (acquire(_NO_OF_IMAGES, _DELAY))
-            print("Data Taken")
             _START = False
 
 main()
