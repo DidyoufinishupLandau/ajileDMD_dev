@@ -105,5 +105,3 @@ def main():
             con = False
     save_data(data)
     """
-
-main()

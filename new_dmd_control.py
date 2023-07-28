@@ -276,5 +276,4 @@ class DMDdriver:
             self._system.GetDriver().StartSequence(sequence.ID(), self.dmd_index)
 
             # wait for the sequence to start
-            print ("Waiting for sequence %d to start" % (sequence.ID(),))
             while self._system.GetDeviceState(self.dmd_index).RunState() != aj.RUN_STATE_RUNNING: pass

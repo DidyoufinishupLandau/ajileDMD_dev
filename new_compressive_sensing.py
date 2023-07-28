@@ -17,7 +17,10 @@ import numpy as np
 import pickle
 import pattern_generator as pg
 import sys
+import SerialReader as sr
 
+
+rp = sr.RPPico("COM7")
 
 def load_list_images() -> list:
     # Loads file NAMES present in ./patterns
@@ -58,6 +61,10 @@ def switch_menu() -> int:
     imageID = 0
     image = np.array
     images: list[np.array]
+    rp.Number_of_images(100)
+    rp.Delay(1)
+    rp.Start()
+
     print("Options:")
     print("0: Generate new patterns")
     print("1: Create new main sequence")
@@ -96,6 +103,7 @@ def switch_menu() -> int:
                 pattID = input("Select ID of the patterns to add it to the main sequence: ")
                 image = pickle.load(open("./patterns/" + patterns[int(pattID)], 'rb'))
                 add_image_to_seq(image,imageID)
+                rp.Number_of_images(imageID)
             else:
                 continue_loop = False
         return 0
@@ -129,11 +137,13 @@ def switch_menu() -> int:
         images = pickle.load(open("./patterns/lists/" + patterns[int(pattID)], 'rb'))
         freq: int = int(input("Frame time of each sequence: "))
         dmd.add_sub_sequence_list(images, freq)
+        rp.Number_of_images(len(images))
         return 0
     
     elif(option == "7"):
         dmd.my_trigger()
         dmd.run_example()
+        rp.Start()
         return 0
     
     elif(option == "8"):
@@ -150,6 +160,10 @@ def switch_menu() -> int:
         images = pickle.load(open("./patterns/lists/" + patterns[int(pattID)], 'rb'))
         freq: int = int(input("Frame time of each sequence: "))
         dmd.multiple_patterns_sequence(images, offImage, int(freq))
+        return 0
+    
+    elif(option == "9"):
+        print(len(rp.Get_data()))
         return 0
 
     # Non-existing option given = exit
