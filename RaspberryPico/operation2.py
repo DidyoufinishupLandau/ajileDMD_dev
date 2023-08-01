@@ -1,10 +1,11 @@
 from machine import ADC, Pin
 import utime
 import sys
+import rp2
 
 # Initialize
 FROM_DMD_OUT_pin = Pin(0, Pin.IN, Pin.PULL_DOWN) # connected to DMD output
-TO_DMD_IN_pin = Pin(1, Pin.OUT, Pin.PULL_DOWN) # connected to DMD input
+TO_DMD_IN_pin = Pin(1, Pin.OUT) # connected to DMD input
 PD_pin = ADC(0) # connected to Photon Detector
 
 # Global variables
@@ -13,11 +14,14 @@ _DELAY: int = 0 # us
 _START: bool = False
 _READY_FOR_ACQ: bool = False
 _DATA: list = []
+_ACQ_COUNTER : int = 0
 
 
 def handle_interrupt(Pin):           #defining interrupt handling function
-    global _READY_FOR_ACQ
-    _READY_FOR_ACQ = True
+    global _ACQ_COUNTER
+    global _DATA
+    _ACQ_COUNTER += 1
+    _DATA.append(read_PD())
 
 def read_PD() -> float:
     return PD_pin.read_u16()
@@ -28,42 +32,28 @@ def send_trigger():
     TO_DMD_IN_pin.value(0)
 
 def activate_input_trigger():
-    FROM_DMD_OUT_pin.irq(trigger=(Pin.IRQ_FALLING | Pin.IRQ_RISING),handler=handle_interrupt) # Pin.IRQ_HIGH_LEVEL unavailable
+    FROM_DMD_OUT_pin.irq(trigger= Pin.IRQ_FALLING | Pin.IRQ_RISING,handler=handle_interrupt) # Pin.IRQ_HIGH_LEVEL unavailable
     
 def disable_input_trigger():
-    FROM_DMD_OUT_pin.irq.deinit()
+    FROM_DMD_OUT_pin.remove_program() # I cannot find a method that would disable the trigge, irq_clear() doesn't work
     
 def acquire(no_of_images : int, delay: int) -> list:
-    i = 0
-    values : list = []
     global _READY_FOR_ACQ
+    global _DATA
+    
+    activate_input_trigger()
+    _DATA = []
     if(delay > 0):
-        while(i < no_of_images):
+        while(_ACQ_COUNTER < no_of_images):
             send_trigger()
-            utime.sleep_us(10)
-            activate_input_trigger()
-            print("active")
-            if(_READY_FOR_ACQ):
-                print("active2")
-                values.append(read_PD())
-                utime.sleep_us(delay)
-                _READY_FOR_ACQ = False
-                i += 1
+            utime.sleep_us(delay)
+
     else:
-        while(i < no_of_images):
+        while(_ACQ_COUNTER < no_of_images):
             send_trigger()
             utime.sleep_us(10)
-            activate_input_trigger()
-            print("active")
-            if(_READY_FOR_ACQ):
-                print("active2")
-                values.append(read_PD())
-                _READY_FOR_ACQ = False
-                i += 1
-        print("finished")
-            
+    # Ideally - disable trigger, but nothing seems to work     
     #disable_input_trigger()
-    return values
 
 
 def Read() -> str:
@@ -129,8 +119,9 @@ def main():
         text = Read()
         if(len(text) != 0):
             commands(text)
+        print(_START)
         if(_START):
-            _DATA = (acquire(_NO_OF_IMAGES, _DELAY))
+            acquire(_NO_OF_IMAGES, _DELAY)
             _START = False
 
 main()

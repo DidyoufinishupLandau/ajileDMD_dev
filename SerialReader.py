@@ -65,7 +65,9 @@ class RPPico:
         for i in range(self._NO_IMAGES):
             li.append(self.Read())
         return li
-
+    def Test(self) -> str:
+        self.ser.write(b"TEST\n")
+        return self.Read()
 
 
     
@@ -84,11 +86,9 @@ def main():
     con = True
     i = 0
     rp.Number_of_images(100)
-    rp.Delay(1)
-    rp.Start()
     d: str =""
     while(con):
-        d = rp.Read()
+        d = rp.Test()
         print(d)
         if(len(d) != 0):
             con = False
@@ -105,3 +105,4 @@ def main():
             con = False
     save_data(data)
     """
+
