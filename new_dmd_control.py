@@ -13,8 +13,9 @@ import numpy as np
 import ajiledriver as aj
 from warnings import warn
 import cv2
+import example_helper
 
-class DMD:
+class DMDdriver:
     """Class defined to wrap Ajile DMD controller."""
     # Constants
     HEIGHT: int = aj.DMD_IMAGE_HEIGHT_MAX
@@ -123,11 +124,40 @@ class DMD:
         # Define frame related to an image 
         frame = aj.Frame(1)
         frame.SetImageID(seqID)
-        frame.SetFrameTimeMSec(frameTime) # Miliseconds
+        frame.SetFrameTimeMSec(int(frameTime)) # Miliseconds
         self._project.AddFrame(frame)
 
+    def add_sub_sequence_list(self, npImages : list[np.array], frameTime : int = 1000):
+        """
+        npImage - np.array image
+        seqID - ID of the sequence, starts with 1 and is incremented by 1
+        frameTime - frame time in MILIseconds
+        """
+        "Add sequence to the main sequence"
+        # public SequenceItem(ushort sequenceID, uint sequenceItemRepeatCount)
+        seqID = 1
+        for i in range(len(npImages)):
+            seqID = i+1
+            seqItem = aj.SequenceItem(seqID, 1)
+            self._project.AddSequenceItem(seqItem)
+            # create two frames and add them to the project
+            # (added to the last sequence item in the sequence)
+            """ I believe each Image has to have unique ID 
+            - maybe if we have N images, we can load them and create a pattern from these let,s say (n1,n2,n3,n1,n2,n3,n4,n5...)
+            without loading n1, n2... multiple times"""
+            myImage = aj.Image(seqID)
+            # load the NumPy image into the Image object and convert it to DMD 4500 format
+            myImage.ReadFromMemory(npImages[i], 8, aj.ROW_MAJOR_ORDER, aj.DMD_4500_DEVICE_TYPE)
+            self._project.AddImage(myImage)
 
-    def create_trigger_rules(self, controller_index: int):
+            # Define frame related to an image 
+            frame = aj.Frame(1)
+            frame.SetImageID(seqID)
+            frame.SetFrameTimeMSec(int(frameTime)) # Miliseconds
+            self._project.AddFrame(frame)
+
+
+    def create_trigger_rules(self, controller_index: int) -> None:
         """Create a trigger rule to connect the DMD frame started to the external output trigger"""
         if self._project is None:
             raise IOError('Project must be defined before trigger is created')
@@ -140,11 +170,74 @@ class DMD:
         # add the trigger rule to the project
         self._project.AddTriggerRule(rule)
 
+    def my_trigger(self, controllerIndex: int=0):
+        dmdIndex = self._project.GetComponentIndexWithDeviceType(aj.DMD_4500_DEVICE_TYPE)
+        
+        inputTriggerSettings = self._project.Components()[controllerIndex].InputTriggerSettings()
+        outputTriggerSettings = self._project.Components()[controllerIndex].OutputTriggerSettings()
+        for index in range(len(outputTriggerSettings)):
+            outputTriggerSettings[index] = aj.ExternalTriggerSetting(aj.RISING_EDGE, aj.FromMSec(1/32768)) # was 1/16 for Arduino
+            inputTriggerSettings[index] = aj.ExternalTriggerSetting(aj.RISING_EDGE)
+        self._project.SetTriggerSettings(controllerIndex, inputTriggerSettings, outputTriggerSettings)
+
+        dmdFrameStartedToExtTrigOut = aj.TriggerRule()
+        dmdFrameStartedToExtTrigOut.AddTriggerFromDevice(aj.TriggerRulePair(dmdIndex, aj.FRAME_STARTED))
+        dmdFrameStartedToExtTrigOut.SetTriggerToDevice(aj.TriggerRulePair(controllerIndex, aj.EXT_TRIGGER_OUTPUT_1))
+        # add the trigger rule to the project
+        self._project.AddTriggerRule(dmdFrameStartedToExtTrigOut)
+
+        # This part doesn't work quite right (probably wiring issue)
+        extTrigInToDMDStartFrame = aj.TriggerRule()
+        extTrigInToDMDStartFrame.AddTriggerFromDevice(aj.TriggerRulePair(controllerIndex, aj.EXT_TRIGGER_INPUT_1))
+        extTrigInToDMDStartFrame.SetTriggerToDevice(aj.TriggerRulePair(dmdIndex, aj.START_FRAME))
+        # add the trigger rule to the project
+        self._project.AddTriggerRule(extTrigInToDMDStartFrame)
+        
+    def multiple_patterns_sequence(self, npImages : list[np.array], offImage : np.array, frameTime : int = 1) -> None:
+        # Image ID 1 - off image
+        myOffImage = aj.Image(1)
+        myOffImage.ReadFromMemory(offImage, 8, aj.ROW_MAJOR_ORDER, aj.DMD_4500_DEVICE_TYPE)
+        self._project.AddImage(myOffImage)
+
+        # Create single sequence - seq ID 1
+        seqItem = aj.SequenceItem(1, 1)
+        self._project.AddSequenceItem(seqItem)
+        
+        # ID range : 2 -> len(images) + 1
+        for i in range(len(npImages)):
+            # Start with 2
+            seqID = i+2
+            # create two frames and add them to the project
+            # (added to the last sequence item in the sequence)
+            """ I believe each Image has to have unique ID 
+            - maybe if we have N images, we can load them and create a pattern from these let,s say (n1,n2,n3,n1,n2,n3,n4,n5...)
+            without loading n1, n2... multiple times"""
+            myImage = aj.Image(seqID)
+            # load the NumPy image into the Image object and convert it to DMD 4500 format
+            myImage.ReadFromMemory(npImages[i], 8, aj.ROW_MAJOR_ORDER, aj.DMD_4500_DEVICE_TYPE)
+            self._project.AddImage(myImage)
+
+        for i in range(len(npImages)):
+            # Define frame related to an image 
+            frame = aj.Frame()
+            frame.SetSequenceID(1)
+            # Off image
+            frame.SetImageID(1)
+            frame.SetFrameTimeMSec(frameTime)
+            self._project.AddFrame(frame)
+
+            frame = aj.Frame()
+            frame.SetSequenceID(1)
+            frame.SetImageID(i+2)
+            frame.SetFrameTimeMSec(frameTime)
+            self._project.AddFrame(frame)
+
+
     def stop_projecting(self) -> None:
         """Stop projecting"""
         self._system.GetDriver().StopSequence(self.dmd_index)
 
-    def start_projecting(self, reportingFreq : int) -> None:
+    def start_projecting(self, reportingFreq : int = 1) -> None:
         """
         Load project, and start sequence
         reportingFreq - reporting frequency (must be greater than 0)
@@ -157,3 +250,30 @@ class DMD:
         # Wait to start running
         while self._system.GetDeviceState(self.dmd_index).RunState() != aj.RUN_STATE_RUNNING:
             pass
+
+
+    def ReturnProject(self, sequenceID=1, sequenceRepeatCount=0, frameTime_ms=-1, components=None):
+        return self._project
+
+
+    def run_example(self) -> None:
+        # The project must be already set up
+        # stop any existing project from running on the device
+        self._system.GetDriver().StopSequence(self.dmd_index)
+
+        # load the project to the device
+        self._system.GetDriver().LoadProject(self._project)
+        self._system.GetDriver().WaitForLoadComplete(-1)
+
+        for sequenceID, sequence in self._project.Sequences().iteritems():
+
+            # if using region-of-interest, switch to 'lite mode' to disable lighting/triggers and allow DMD to run faster
+            roiWidthColumns = sequence.SequenceItems()[0].Frames()[0].RoiWidthColumns()
+            if roiWidthColumns > 0 and roiWidthColumns < aj.DMD_IMAGE_WIDTH_MAX:
+                self._system.GetDriver().SetLiteMode(True, self.dmd_index)
+                
+
+            self._system.GetDriver().StartSequence(sequence.ID(), self.dmd_index)
+
+            # wait for the sequence to start
+            while self._system.GetDeviceState(self.dmd_index).RunState() != aj.RUN_STATE_RUNNING: pass
