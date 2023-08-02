@@ -59,9 +59,6 @@ def switch_menu() -> int:
     imageID = 0
     image = np.array
     images: list[np.array]
-    #_rp.Number_of_images(100)
-    #_rp.Delay(1)
-    #_rp.Start()
 
     print("Options:")
     print("0: Generate new patterns")
@@ -161,8 +158,6 @@ def switch_menu() -> int:
         return 0
     
     elif(option == "9"):
-        _rp.Number_of_images(10)
-        print(len(_rp.Get_data()))
         sr.save_data(_rp.Get_data(), "PicoTest")
         return 0
 
@@ -173,11 +168,11 @@ def switch_menu() -> int:
     return -1
 
 def main():
-    #dmd.create_project()
+    dmd.create_project()
 
     repSeq: int = input("Repetition count of the main sequence (0 means infinity): ")
 
-    #dmd.create_main_sequence(int(repSeq)) # 0 means infinity
+    dmd.create_main_sequence(int(repSeq)) # 0 means infinity
     print("Project and initial sequence are created")
 
     option = 0
@@ -195,6 +190,6 @@ if __name__ == "__main__":
     global dmd
     global _rp
     _rp = sr.RPPico("COM7")
-    #dmd = DMDdriver()
+    dmd = DMDdriver()
     main()
 
