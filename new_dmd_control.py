@@ -176,7 +176,7 @@ class DMDdriver:
         inputTriggerSettings = self._project.Components()[controllerIndex].InputTriggerSettings()
         outputTriggerSettings = self._project.Components()[controllerIndex].OutputTriggerSettings()
         for index in range(len(outputTriggerSettings)):
-            outputTriggerSettings[index] = aj.ExternalTriggerSetting(aj.RISING_EDGE, aj.FromMSec(1/32)) # was 1/16 for Arduino
+            outputTriggerSettings[index] = aj.ExternalTriggerSetting(aj.RISING_EDGE, aj.FromMSec(1/32768)) # was 1/16 for Arduino
             inputTriggerSettings[index] = aj.ExternalTriggerSetting(aj.RISING_EDGE)
         self._project.SetTriggerSettings(controllerIndex, inputTriggerSettings, outputTriggerSettings)
 

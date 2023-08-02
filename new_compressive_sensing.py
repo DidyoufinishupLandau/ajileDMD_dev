@@ -158,11 +158,14 @@ def switch_menu() -> int:
         return 0
     
     elif(option == "9"):
+        print("Saving")
         sr.save_data(_rp.Get_data(), "PicoTest")
+        print("Data Saved")
         return 0
 
     elif(option =="10"):
         print(_rp.Test())
+        _rp.Info()
         return 0
     # Non-existing option given = exit
     return -1
@@ -190,6 +193,7 @@ if __name__ == "__main__":
     global dmd
     global _rp
     _rp = sr.RPPico("COM7")
+    _rp.Reset()
     dmd = DMDdriver()
     main()
 

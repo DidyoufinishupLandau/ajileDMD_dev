@@ -62,8 +62,7 @@ def Read() -> str:
 def Write(data: list):
     if(len(_DATA) >= _NO_OF_IMAGES):
         for i in range(_NO_OF_IMAGES):
-            #print(_DATA[i])
-            print(0)
+            print(_DATA[i])
             
     print("END")
 

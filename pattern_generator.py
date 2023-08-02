@@ -90,6 +90,13 @@ def list_a_a(a:int) -> list[np.array]:
             images.append(npImage)
     return images
 
+
+def test_list() -> list[np.array]:
+    li: list = []
+    for i in range(100):
+        li.append(one_side("right"))
+        li.append(one_side("left"))
+    return li
 """
 def list_1_1() -> list[np.array]:
     # Divide DMD into squares of 1x1 pixels
@@ -176,6 +183,8 @@ def create_all_patterns():
     save_image(vertical_50_50(),"vertical_50_50")
     save_image(checkers(),"checkers")
     save_image(random_50_50(), "random_50_50")
+
+    save_image_list(test_list(), "test_list")
     #save_image_list(list_19_19(), "19_19")
     #save_image_list(list_38_38(), "38_38")
     #save_image_list(list_57_57(), "57_57")

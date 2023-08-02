@@ -43,23 +43,29 @@ class RPPico:
     ## COMMANDS
     def Led_on(self):
         self.ser.write(b"LED_ON\n")
+        
     def Led_off(self):
         self.ser.write(b"LED_OFF\n")
+
     def Number_of_images(self, no: int):
         self._NO_IMAGES = no
         text = "N_"+ str(no) + "\n"
         self.ser.write(bytes(text, "utf-8"))
+
     def Delay(self, d: int):
         # delay in us
         text = "D_"+ str(d) + "\n"
         self.ser.write(bytes(text, "utf-8"))
+
     def Start(self):
         self.ser.write(b"S_TRUE\n")
+
     def Info(self):
         self.ser.write(b"INFO\n")
         # There are 3 values to be printed
         for i in range(3):
             print(str(self.Read()).replace("\\r\\n",""))
+
     def Get_data(self) -> list:
         li: list = []
         self.ser.write(b"GD\n")
@@ -72,8 +78,10 @@ class RPPico:
                 return li
             else:
                 li.append(text)
+
+    def Reset(self):
+        self.ser.write(b"RESTART\n")
         
-    
     def Test(self) -> str:
         self.ser.write(b"TEST\n")
         return self.Read()
