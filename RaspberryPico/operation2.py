@@ -32,7 +32,7 @@ def send_trigger():
     TO_DMD_IN_pin.value(0)
 
 def activate_input_trigger():
-    FROM_DMD_OUT_pin.irq(trigger= Pin.IRQ_FALLING | Pin.IRQ_RISING,handler=handle_interrupt) # Pin.IRQ_HIGH_LEVEL unavailable
+    FROM_DMD_OUT_pin.irq(trigger= Pin.IRQ_FALLING, handler=handle_interrupt) # Pin.IRQ_HIGH_LEVEL unavailable
     
 def disable_input_trigger():
     FROM_DMD_OUT_pin.remove_program() # I cannot find a method that would disable the trigge, irq_clear() doesn't work
@@ -57,13 +57,15 @@ def acquire(no_of_images : int, delay: int) -> list:
 
 
 def Read() -> str:
-    for line in sys.stdin:
-        return line
+    return sys.stdin.readline()
 
 def Write(data: list):
-    for item in data:
-        sys.stdout.write(item)
-
+    if(len(_DATA) >= _NO_OF_IMAGES):
+        for i in range(_NO_OF_IMAGES):
+            #print(_DATA[i])
+            print(0)
+            
+    print("END")
 
 def commands(comm: str):
     global _NO_OF_IMAGES
@@ -92,12 +94,15 @@ def commands(comm: str):
     # GD = Get Data
     if ("GD" in comm):
         Write(_DATA)
+    # Reset Data
     if("RD" in comm):
         _DATA = []
+    if("ShowData" in comm):
+        print(_DATA)
     if("RESTART" in comm):
         restart()
     if("TEST" in comm):
-        sys.stdout.write("Test response")
+        print("Test response")
 
 
 def restart():
@@ -119,7 +124,7 @@ def main():
         text = Read()
         if(len(text) != 0):
             commands(text)
-        print(_START)
+            #sys.stdin.read() # clear buffer
         if(_START):
             acquire(_NO_OF_IMAGES, _DELAY)
             _START = False

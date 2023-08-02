@@ -27,14 +27,15 @@ class ArduinoUNO:
         self.ser.write(text)
 """
 class RPPico:
-    ser: serial.Serial
+    ser: serial.Serial()
     _NO_IMAGES: int
 
-    def __init__(self,COM:str):
-        self.ser = serial.Serial(COM, 115200, timeout=2) # MAX 115200
+    def __init__(self, COM:str):
+        self.ser = serial.Serial(COM, 128000, xonxoff=True) # MAX 128000
 
     def Read(self):
-        return self.ser.readline() # Read the data (looks for terminating character '/r/n')
+        ser_bytes = self.ser.readline()
+        return str(ser_bytes[0:len(ser_bytes)-2].decode("utf-8")) # Read the data (looks for terminating character '/r/n')
 
     def Write(self, text: str= ""):
         self.ser.write(text)
@@ -62,9 +63,17 @@ class RPPico:
     def Get_data(self) -> list:
         li: list = []
         self.ser.write(b"GD\n")
-        for i in range(self._NO_IMAGES):
-            li.append(self.Read())
-        return li
+        i=0
+        time.sleep(0.001)
+
+        while(True):
+            text = self.Read()
+            if("END" in text):
+                return li
+            else:
+                li.append(text)
+        
+    
     def Test(self) -> str:
         self.ser.write(b"TEST\n")
         return self.Read()
@@ -79,6 +88,7 @@ def save_data(li : list, file_name: str):
         write.writerow([str(i).replace("b","").replace("\\r","").replace("\\n","").replace("'","") for i in li])
 
 
+"""
 def main():
     data: list = []
     rp = RPPico("COM7")
@@ -95,7 +105,9 @@ def main():
             print(d)
 
     print(data)
-    """
+"""
+
+"""
     while(con ):
         text = ar.Read()
         end = time.time()
@@ -104,5 +116,5 @@ def main():
         if(end-start > 20):
             con = False
     save_data(data)
-    """
+"""
 

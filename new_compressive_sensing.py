@@ -20,8 +20,6 @@ import sys
 import SerialReader as sr
 
 
-rp = sr.RPPico("COM7")
-
 def load_list_images() -> list:
     # Loads file NAMES present in ./patterns
     # All paterns should be created before hand using pattern_generator.py
@@ -61,9 +59,9 @@ def switch_menu() -> int:
     imageID = 0
     image = np.array
     images: list[np.array]
-    #rp.Number_of_images(100)
-    #rp.Delay(1)
-    #rp.Start()
+    #_rp.Number_of_images(100)
+    #_rp.Delay(1)
+    #_rp.Start()
 
     print("Options:")
     print("0: Generate new patterns")
@@ -103,7 +101,7 @@ def switch_menu() -> int:
                 pattID = input("Select ID of the patterns to add it to the main sequence: ")
                 image = pickle.load(open("./patterns/" + patterns[int(pattID)], 'rb'))
                 add_image_to_seq(image,imageID)
-                rp.Number_of_images(imageID)
+                _rp.Number_of_images(imageID)
             else:
                 continue_loop = False
         return 0
@@ -137,13 +135,13 @@ def switch_menu() -> int:
         images = pickle.load(open("./patterns/lists/" + patterns[int(pattID)], 'rb'))
         freq: int = int(input("Frame time of each sequence: "))
         dmd.add_sub_sequence_list(images, freq)
-        rp.Number_of_images(len(images))
+        _rp.Number_of_images(len(images))
         return 0
     
     elif(option == "7"):
         dmd.my_trigger()
         dmd.run_example()
-        rp.Start()
+        _rp.Start()
         return 0
     
     elif(option == "8"):
@@ -163,12 +161,13 @@ def switch_menu() -> int:
         return 0
     
     elif(option == "9"):
-        print(len(rp.Get_data()))
-        sr.save_data(rp.Get_data(), "PicoTest")
+        _rp.Number_of_images(10)
+        print(len(_rp.Get_data()))
+        sr.save_data(_rp.Get_data(), "PicoTest")
         return 0
 
     elif(option =="10"):
-        print(rp.Test())
+        print(_rp.Test())
         return 0
     # Non-existing option given = exit
     return -1
@@ -194,6 +193,8 @@ def main():
 
 if __name__ == "__main__":
     global dmd
+    global _rp
+    _rp = sr.RPPico("COM7")
     #dmd = DMDdriver()
     main()
 
