@@ -28,11 +28,11 @@ def read_PD() -> float:
 
 def send_trigger():
     TO_DMD_IN_pin.value(1)
-    utime.sleep_us(1)
+    #utime.sleep_us(10)
     TO_DMD_IN_pin.value(0)
 
 def activate_input_trigger():
-    FROM_DMD_OUT_pin.irq(trigger= Pin.IRQ_FALLING, handler=handle_interrupt) # Pin.IRQ_HIGH_LEVEL unavailable
+    FROM_DMD_OUT_pin.irq(trigger=Pin.IRQ_FALLING, handler=handle_interrupt) # Pin.IRQ_HIGH_LEVEL unavailable
     
 def disable_input_trigger():
     FROM_DMD_OUT_pin.remove_program() # I cannot find a method that would disable the trigge, irq_clear() doesn't work
@@ -40,18 +40,19 @@ def disable_input_trigger():
 def acquire(no_of_images : int, delay: int) -> list:
     global _READY_FOR_ACQ
     global _DATA
+    global _ACQ_COUNTER
     
     activate_input_trigger()
     _DATA = []
+    _ACQ_COUNTER = 0
     if(delay > 0):
-        while(_ACQ_COUNTER < no_of_images):
+        while(_ACQ_COUNTER < no_of_images+2):
             send_trigger()
             utime.sleep_us(delay)
 
     else:
-        while(_ACQ_COUNTER < no_of_images):
+        while(_ACQ_COUNTER < no_of_images+2):
             send_trigger()
-            utime.sleep_us(10)
     # Ideally - disable trigger, but nothing seems to work     
     #disable_input_trigger()
 
@@ -60,9 +61,9 @@ def Read() -> str:
     return sys.stdin.readline()
 
 def Write(data: list):
-    if(len(_DATA) >= _NO_OF_IMAGES):
+    if(len(_DATA) > _NO_OF_IMAGES):
         for i in range(_NO_OF_IMAGES):
-            print(_DATA[i])
+            print(_DATA[i+1])
             
     print("END")
 
@@ -117,7 +118,6 @@ def restart():
     
 def main():
     global _START
-    global _DATA
     _START = False
     while(True):
         text = Read()
