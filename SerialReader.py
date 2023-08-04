@@ -90,7 +90,7 @@ class RPPico:
     
 
 def save_data(li : list, file_name: str):
-    with open(file_name+'.csv', 'w') as f:
+    with open(".\\data\\"+file_name+'.csv', 'w') as f:
     # using csv.writer method from CSV package
         write = csv.writer(f)
         write.writerow([str(i).replace("b","").replace("\\r","").replace("\\n","").replace("'","") for i in li])
@@ -126,3 +126,5 @@ def main():
     save_data(data)
 """
 
+li: list = [1,1,1]
+save_data(li,"a")
