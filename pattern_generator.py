@@ -185,10 +185,8 @@ def create_all_patterns():
     save_image(random_50_50(), "random_50_50")
 
     save_image_list(test_list(), "test_list")
-    #save_image_list(list_19_19(), "19_19")
-    #save_image_list(list_38_38(), "38_38")
-    #save_image_list(list_57_57(), "57_57")
-    #save_image_list(list_76_76(), "76_76")
-    #save_image_list(list_114_114(), "114_114")
-
-create_all_patterns()
+    save_image_list(list_19_19(), "19_19")
+    save_image_list(list_38_38(), "38_38")
+    save_image_list(list_57_57(), "57_57")
+    save_image_list(list_76_76(), "76_76")
+    save_image_list(list_114_114(), "114_114")

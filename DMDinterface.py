@@ -30,9 +30,10 @@ import pickle
 
 
 class DMD:
-    __dmd = DMDdriver()
+    __dmd: object
     __IMAGE_ID = 1 # Increment when image is added to a sequence
     __patterns: list = []
+    __patterns_lists: list = [] # it's an list that contains list of images 
 
     __loaded_patterns: list = [] ## List(str)
     __patterns_count: list = [] ## List(int)
@@ -40,25 +41,28 @@ class DMD:
     __main_rep: int = 1 # repetition count of the main sequence
     __reporting_freqency: int = 1
 
-    def __init__(self) -> None:
-        #__dmd = DMDdriver()
-        #pg.create_all_patterns()
+    def __init__(self, rep: int) -> None:
         #self.__dmd = DMDdriver()
-        self.__patterns = self.__load_list_images()
-
-
+        self.__load_list_images()
+        self.__dmd.create_project()
+        self.__dmd.create_main_sequence(rep)
+        self.__main_rep = rep
 
     ## ----  Private  ---- ##
 
     def __load_list_images(self) -> list:
         # Loads file NAMES present in ./patterns
         # All paterns should be created before hand using pattern_generator.py
-        patterns = []
+
         for file in os.listdir("./patterns"):
             # Check whether file is in pickle format or not
             if file.endswith(".pickle"):
-                patterns.append(file)
-        return patterns
+                self.__patterns.append(file)
+        for file in os.listdir("./patterns/lists"):
+            # Check whether file is in pickle format or not
+            if file.endswith(".pickle"):
+                self.__patterns_lists.append("/lists/" + file)
+
     
     def __get_config_parameters(self) -> dict:
         config = configparser.ConfigParser()
@@ -85,6 +89,11 @@ class DMD:
         self.__dmd.add_sub_sequence(image, self.__IMAGE_ID, frameTime)
         self.__IMAGE_ID += 1
 
+    def __add_list_to_seq(self, patternName : str, frameTime : int = 10) -> None:
+        image: list[np.array]
+        image = pickle.load(open("./patterns/lists/" + patternName, 'rb'))
+        self.__dmd.add_sub_sequence_list(image, frameTime)
+
 
 
     ## ----  Public  ---- ##
@@ -104,6 +113,10 @@ class DMD:
         self.__loaded_patterns.append(self.__patterns[patternID])
         self.__frame_time.append(frameTime)
 
+    def add_list_to_seq(self, patternID : int, frameTime : int = 10) -> None:
+        self.__loaded_patterns.append(self.__patterns_lists[patternID])
+        self.__frame_time.append(frameTime)
+
     def set_frame_time(self, time : int) -> None:
         self.__frame_time = time
     
@@ -115,6 +128,7 @@ class DMD:
 
     def show_patterns(self) -> None:
         self.__print_list(self.__patterns)
+        self.__print_list(self.__patterns_lists)
 
     def set_reporting_frequency(self, freq: int):
         self.__reporting_freqency = freq
@@ -129,12 +143,15 @@ class DMD:
     ## I think I should load everything here
     # use loaded_patterns to create an image, and in add_image just put it into loaded_patterns list
     def create_project(self) -> None:
-        self.__dmd.create_project()
-        print(self.__main_rep)
-        self.__dmd.create_main_sequence(self.__main_rep)
-
-        for i in range(len(self.__loaded_patterns)):
-            self.__add_image_to_seq(self.__loaded_patterns[i], self.__frame_time[i])
+        #self.__dmd.create_project()
+        #print(self.__main_rep)
+        #self.__dmd.create_main_sequence(self.__main_rep)
+        if("list" in self.__loaded_patterns[0]):
+            for i in range(len(self.__loaded_patterns)):
+                self.__add_list_to_seq(self.__loaded_patterns[i], self.__frame_time[i])
+        else:
+            for i in range(len(self.__loaded_patterns)):
+                self.__add_image_to_seq(self.__loaded_patterns[i], self.__frame_time[i])
 
         print("Project created")
 
@@ -152,12 +169,4 @@ class DMD:
 
 dmd = DMD()
 dmd.show_patterns()
-dmd.add_image_to_seq(2,1000)
-dmd.add_image_to_seq(3,1000)
-dmd.add_image_to_seq(1,1000)
-dmd.set_main_repetition(5)
-dmd.set_reporting_frequency(2)
-dmd.info()
-dmd.create_project()
-#dmd.load_project()
-dmd.run()
+

@@ -192,8 +192,8 @@ def main():
 if __name__ == "__main__":
     global dmd
     global _rp
-    _rp = sr.RPPico("COM7")
-    _rp.Reset()
-    dmd = DMDdriver()
+    #_rp = sr.RPPico("COM7")
+    #_rp.Reset()
+    #dmd = DMDdriver()
     main()
 

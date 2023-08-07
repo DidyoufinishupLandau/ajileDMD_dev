@@ -94,37 +94,3 @@ def save_data(li : list, file_name: str):
     # using csv.writer method from CSV package
         write = csv.writer(f)
         write.writerow([str(i).replace("b","").replace("\\r","").replace("\\n","").replace("'","") for i in li])
-
-
-"""
-def main():
-    data: list = []
-    rp = RPPico("COM7")
-    start = time.time()
-    con = True
-    i = 0
-    rp.Number_of_images(100)
-    d: str =""
-    while(con):
-        d = rp.Test()
-        print(d)
-        if(len(d) != 0):
-            con = False
-            print(d)
-
-    print(data)
-"""
-
-"""
-    while(con ):
-        text = ar.Read()
-        end = time.time()
-        if(len(text) != 0):
-            data.append(text)
-        if(end-start > 20):
-            con = False
-    save_data(data)
-"""
-
-li: list = [1,1,1]
-save_data(li,"a")
