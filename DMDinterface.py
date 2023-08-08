@@ -19,7 +19,6 @@ ISSUE:
 - cannot set repetition count properly, no matter what the repetition count is, the sequence will run only once (error?/bad implementation?)
 """
 
-import ajiledriver as aj
 from new_dmd_control import DMDdriver
 import pattern_generator as pg
 import os
@@ -30,7 +29,7 @@ import pickle
 
 
 class DMD:
-    __dmd: object
+    __dmd: object = DMDdriver()
     __IMAGE_ID = 1 # Increment when image is added to a sequence
     __patterns: list = []
     __patterns_lists: list = [] # it's an list that contains list of images 
@@ -41,8 +40,8 @@ class DMD:
     __main_rep: int = 1 # repetition count of the main sequence
     __reporting_freqency: int = 1
 
-    def __init__(self, rep: int) -> None:
-        #self.__dmd = DMDdriver()
+    def __init__(self, rep: int=1) -> None:
+        self.__dmd = DMDdriver()
         self.__load_list_images()
         self.__dmd.create_project()
         self.__dmd.create_main_sequence(rep)
@@ -91,7 +90,7 @@ class DMD:
 
     def __add_list_to_seq(self, patternName : str, frameTime : int = 10) -> None:
         image: list[np.array]
-        image = pickle.load(open("./patterns/lists/" + patternName, 'rb'))
+        image = pickle.load(open("./patterns/" + patternName, 'rb'))
         self.__dmd.add_sub_sequence_list(image, frameTime)
 
 
@@ -162,11 +161,21 @@ class DMD:
     def run(self) -> None:
         self.__dmd.stop_projecting()
         self.__dmd.start_projecting(self.__reporting_freqency)
+        input("Press Enter to stop the sequence")
+        self.__dmd.stop_projecting()
+
+    def run_trigger(self) -> None:
+        self.__dmd.my_trigger()
+        self.__dmd.run_example()
 
     def stop(self) -> None:
         self.__dmd.stop_projecting()
     
 
-dmd = DMD()
+dmd = DMD(0)
 dmd.show_patterns()
-
+#dmd.add_image_to_seq(2,1000)
+#dmd.add_image_to_seq(4,1000)
+dmd.add_list_to_seq(3,1000)
+dmd.create_project()
+dmd.run()

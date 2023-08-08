@@ -22,6 +22,8 @@ def handle_interrupt(Pin):           #defining interrupt handling function
     global _DATA
     _ACQ_COUNTER += 1
     _DATA.append(read_PD())
+    if(_DELAY > 0):
+        utime.sleep_us(_DELAY)
 
 def read_PD() -> float:
     return PD_pin.read_u16()
@@ -37,7 +39,7 @@ def activate_input_trigger():
 def disable_input_trigger():
     FROM_DMD_OUT_pin.remove_program() # I cannot find a method that would disable the trigge, irq_clear() doesn't work
     
-def acquire(no_of_images : int, delay: int) -> list:
+def acquire(no_of_images : int) -> list:
     global _READY_FOR_ACQ
     global _DATA
     global _ACQ_COUNTER
@@ -45,14 +47,9 @@ def acquire(no_of_images : int, delay: int) -> list:
     activate_input_trigger()
     _DATA = []
     _ACQ_COUNTER = 0
-    if(delay > 0):
-        while(_ACQ_COUNTER < no_of_images+2):
-            send_trigger()
-            utime.sleep_us(delay)
+    while(_ACQ_COUNTER < no_of_images+2):
+        send_trigger()
 
-    else:
-        while(_ACQ_COUNTER < no_of_images+2):
-            send_trigger()
     # Ideally - disable trigger, but nothing seems to work     
     #disable_input_trigger()
 
@@ -125,7 +122,7 @@ def main():
             commands(text)
             #sys.stdin.read() # clear buffer
         if(_START):
-            acquire(_NO_OF_IMAGES, _DELAY)
+            acquire(_NO_OF_IMAGES)
             _START = False
 
 main()
