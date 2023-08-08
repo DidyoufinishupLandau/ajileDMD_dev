@@ -49,12 +49,12 @@ class RPPico:
 
     def Number_of_images(self, no: int):
         self._NO_IMAGES = no
-        text = "N_"+ str(no) + "\n"
+        text = "_N_"+ str(no) + "\n"
         self.ser.write(bytes(text, "utf-8"))
 
     def Delay(self, d: int):
         # delay in us
-        text = "D_"+ str(d) + "\n"
+        text = "_D_"+ str(d) + "\n"
         self.ser.write(bytes(text, "utf-8"))
 
     def Start(self):
@@ -68,7 +68,7 @@ class RPPico:
 
     def Get_data(self) -> list:
         li: list = []
-        self.ser.write(b"GD\n")
+        self.ser.write(b"_GD_\n")
         i=0
         time.sleep(0.001)
 
@@ -85,6 +85,17 @@ class RPPico:
     def Test(self) -> str:
         self.ser.write(b"TEST\n")
         return self.Read()
+    
+    # Check if is ready to acquire the data
+    def Is_Ready(self) -> bool:
+        self.ser.write(b"_DR_\n")
+        ret = self.Read()
+
+        if("READY" in ret):
+            return True
+        else:
+            return False
+
 
 
     

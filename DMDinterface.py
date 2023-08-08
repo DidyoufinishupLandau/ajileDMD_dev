@@ -14,11 +14,6 @@ This class is supposed to be access using:  exec(open('file.py').read()) or simp
 @author: Alex Kedziora
 """
 
-"""
-ISSUE:
-- cannot set repetition count properly, no matter what the repetition count is, the sequence will run only once (error?/bad implementation?)
-"""
-
 from new_dmd_control import DMDdriver
 import pattern_generator as pg
 import os
@@ -40,12 +35,12 @@ class DMD:
     __main_rep: int = 1 # repetition count of the main sequence
     __reporting_freqency: int = 1
 
-    def __init__(self, rep: int=1) -> None:
+    def __init__(self) -> None:
         self.__dmd = DMDdriver()
         self.__load_list_images()
         self.__dmd.create_project()
-        self.__dmd.create_main_sequence(rep)
-        self.__main_rep = rep
+        #self.__dmd.create_main_sequence(rep)
+        #self.__main_rep = rep
 
     ## ----  Private  ---- ##
 
@@ -141,10 +136,13 @@ class DMD:
 
     ## I think I should load everything here
     # use loaded_patterns to create an image, and in add_image just put it into loaded_patterns list
-    def create_project(self) -> None:
+    def create_project(self, rep:int) -> None:
         #self.__dmd.create_project()
         #print(self.__main_rep)
         #self.__dmd.create_main_sequence(self.__main_rep)
+        self.__main_rep = rep
+        self.__dmd.create_main_sequence(rep)
+        
         if("list" in self.__loaded_patterns[0]):
             for i in range(len(self.__loaded_patterns)):
                 self.__add_list_to_seq(self.__loaded_patterns[i], self.__frame_time[i])

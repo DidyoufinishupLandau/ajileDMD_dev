@@ -15,6 +15,7 @@ _START: bool = False
 _READY_FOR_ACQ: bool = False
 _DATA: list = []
 _ACQ_COUNTER : int = 0
+_DATA_READY: bool = False
 
 
 def handle_interrupt(Pin):           #defining interrupt handling function
@@ -43,13 +44,16 @@ def acquire(no_of_images : int) -> list:
     global _READY_FOR_ACQ
     global _DATA
     global _ACQ_COUNTER
+    global _DATA_READY
     
     activate_input_trigger()
     _DATA = []
+    _DATA_READY = False
     _ACQ_COUNTER = 0
     while(_ACQ_COUNTER < no_of_images+2):
         send_trigger()
 
+    _DATA_READY = True
     # Ideally - disable trigger, but nothing seems to work     
     #disable_input_trigger()
 
@@ -69,13 +73,14 @@ def commands(comm: str):
     global _DELAY
     global _START
     global _DATA
+    global _DATA_READY
     
     led = Pin(25, Pin.OUT)
-    if("N_" in comm):
-       _NO_OF_IMAGES = int(comm.replace("N_",""))
-    if("D_" in comm and not("LED_" in comm)):
-        _DELAY = int(comm.replace("D_", ""))
-    if("S_" in comm):
+    if("_N_" in comm):
+       _NO_OF_IMAGES = int(comm.replace("_N_",""))
+    if("_D_" in comm and not("LED_" in comm)):
+        _DELAY = int(comm.replace("_D_", ""))
+    if("_S_" in comm):
         if("TRUE" in comm):
             _START = True
         elif("FALSE" in comm):
@@ -89,17 +94,24 @@ def commands(comm: str):
         print("Delay after a single data acquisition (us): ", _DELAY)
         print("Data size: ", len(_DATA))
     # GD = Get Data
-    if ("GD" in comm):
+    if ("_GD_" in comm):
         Write(_DATA)
     # Reset Data
-    if("RD" in comm):
+    if("_RD_" in comm):
         _DATA = []
+        _DATA_READY = False
     if("ShowData" in comm):
         print(_DATA)
     if("RESTART" in comm):
         restart()
     if("TEST" in comm):
         print("Test response")
+    # Data Ready
+    if("_DR_" in comm):
+        if(_DATA_READY):
+            print("READY")
+        else:
+            print("NOT")
 
 
 def restart():
@@ -107,11 +119,13 @@ def restart():
     global _DELAY
     global _START
     global _DATA
-
+    global _DATA_READY
+    
     _NO_OF_IMAGES = -1
     _DELAY = 0
     _START = False
     _DATA = []
+    _DATA_READY = False
     
 def main():
     global _START
