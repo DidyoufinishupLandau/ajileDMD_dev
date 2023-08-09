@@ -94,9 +94,6 @@ class RPPico:
             return True
         else:
             return False
-
-
-
     
 
 def save_data(li : list, file_name: str):

@@ -50,7 +50,7 @@ def acquire(no_of_images : int) -> list:
     _DATA = []
     _DATA_READY = False
     _ACQ_COUNTER = 0
-    while(_ACQ_COUNTER < no_of_images+2):
+    while(_ACQ_COUNTER < _NO_OF_IMAGES+2):
         send_trigger()
 
     _DATA_READY = True

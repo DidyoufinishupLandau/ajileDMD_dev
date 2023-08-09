@@ -55,7 +55,7 @@ class DMD:
         for file in os.listdir("./patterns/lists"):
             # Check whether file is in pickle format or not
             if file.endswith(".pickle"):
-                self.__patterns.append("/lists/" + file)
+                self.__patterns.append("lists/" + file)
 
     
     def __get_config_parameters(self) -> dict:
@@ -82,12 +82,14 @@ class DMD:
         image = pickle.load(open("./patterns/" + patternName, 'rb'))
         self.__dmd.add_sub_sequence(image, self.__IMAGE_ID, frameTime)
         self.__IMAGE_ID += 1
-    """
-    def __add_list_to_seq(self, patternName : str, frameTime : int = 10) -> None:
+    
+    #returns number of images in a list
+    def __add_list_to_seq(self, patternName : str, frameTime : int = 10) -> int:
         image: list[np.array]
         image = pickle.load(open("./patterns/" + patternName, 'rb'))
         self.__dmd.add_sub_sequence_list(image, frameTime)
-    """
+        return len(image)
+    
 
 
     ## ----  Public  ---- ##
@@ -136,24 +138,25 @@ class DMD:
 
     ## I think I should load everything here
     # use loaded_patterns to create an image, and in add_image just put it into loaded_patterns list
-    def create_project(self, rep:int) -> None:
+    # returns number of images
+    def create_project(self, rep:int) -> int:
         #self.__dmd.create_project()
         #print(self.__main_rep)
         #self.__dmd.create_main_sequence(self.__main_rep)
         self.__main_rep = rep
         self.__dmd.create_main_sequence(rep)
-        
-        for i in range(len(self.__loaded_patterns)):
-                self.__add_image_to_seq(self.__loaded_patterns[i], self.__frame_time[i])
-        """
+        NoOfImages:int =0
+
         if("list" in self.__loaded_patterns[0]):
             for i in range(len(self.__loaded_patterns)):
-                self.__add_list_to_seq(self.__loaded_patterns[i], self.__frame_time[i])
+                NoOfImages += self.__add_list_to_seq(self.__loaded_patterns[i], self.__frame_time[i])
         else:
             for i in range(len(self.__loaded_patterns)):
                 self.__add_image_to_seq(self.__loaded_patterns[i], self.__frame_time[i])
-        """
+                NoOfImages += 1
+        
         print("Project created")
+        return NoOfImages
 
     def load_project(self) -> None:
         self.__dmd.load_project()

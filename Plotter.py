@@ -15,10 +15,10 @@ import matplotlib.pyplot as plt
 import csv 
 from collections import deque
 
-def heat_map(z : np.array):
+def heat_map(z : np.array, name:str):
     plt.imshow( z )
     plt.colorbar()
-    plt.show()
+    plt.savefig(".\\plots\\"+ name)
 
 def subtract(data):
     d1 = data[0::2]
@@ -51,7 +51,8 @@ def load_csv(path:str) -> list:
         data.append(float(item[0]))
     return data
 
-data = load_csv("data_19_19.csv")
-subtracted_data = subtract(data)
-sorted = (separate_data(subtracted_data, 19))
-heat_map(sorted)
+def create_plot(data_name:str, pixel_size:int, image_name:str) -> None:
+    data = load_csv(".\\data\\"+data_name)
+    subtracted_data = subtract(data)
+    sorted = (separate_data(subtracted_data, pixel_size))
+    heat_map(sorted, image_name)

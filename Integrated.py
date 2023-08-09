@@ -11,6 +11,7 @@ This file creates a class that combines DMD and Pico into one
 import SerialReader as pico
 import DMDinterface as dmd
 import pattern_generator as pg
+import Plotter
 import time
 
 class DMD_Pico:
@@ -39,7 +40,9 @@ class DMD_Pico:
 
     # Create project; repetition of the DMD's sequence: 0(=infinity)
     def Create_project(self, rep: int=1):
-        self._dmd.create_project(rep)
+        self._pico.Info()
+        self._pico.Number_of_images(self._dmd.create_project(rep))
+        self._pico.Info()
 
     # Starts triggering and data taking (data is not sent to PC)
     def Run_trigger(self):
@@ -55,18 +58,26 @@ class DMD_Pico:
                 con = False # It's not needed, loop is terminated by return
                 return self._pico.Get_data()
         
-    def Save_data(data:list, file_name:str) -> None:
+    def Save_data(self, data:list, file_name:str) -> None:
         pico.save_data(data, file_name)
 
     def Run_Save(self, file_name:str) -> None:
-        self.Save_data(self.Run())
+        self.Save_data(self.Run(), file_name)
+
+    def Create_plot(data_name:str, pixel_size:int, image_name:str):
+        Plotter.create_plot(data_name, pixel_size, image_name)
 
 
+print("3")
 obj = DMD_Pico("COM7")
-obj.Show_patterns()
+print("2")
+#obj.Show_patterns()
 obj.Add_pattern(9)
+print("1")
 obj.Create_project()
+print("Started")
 start = time.time()
+## Works till this moment
 obj.Run_Save("Data_test_09_08_2023")
 end = time.time()
 print(end - start)
