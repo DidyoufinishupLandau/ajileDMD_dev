@@ -27,7 +27,7 @@ class DMD:
     __dmd: object = DMDdriver()
     __IMAGE_ID = 1 # Increment when image is added to a sequence
     __patterns: list = []
-    __patterns_lists: list = [] # it's an list that contains list of images 
+    #__patterns_lists: list = [] # it's an list that contains list of images 
 
     __loaded_patterns: list = [] ## List(str)
     __patterns_count: list = [] ## List(int)
@@ -55,7 +55,7 @@ class DMD:
         for file in os.listdir("./patterns/lists"):
             # Check whether file is in pickle format or not
             if file.endswith(".pickle"):
-                self.__patterns_lists.append("/lists/" + file)
+                self.__patterns.append("/lists/" + file)
 
     
     def __get_config_parameters(self) -> dict:
@@ -82,12 +82,12 @@ class DMD:
         image = pickle.load(open("./patterns/" + patternName, 'rb'))
         self.__dmd.add_sub_sequence(image, self.__IMAGE_ID, frameTime)
         self.__IMAGE_ID += 1
-
+    """
     def __add_list_to_seq(self, patternName : str, frameTime : int = 10) -> None:
         image: list[np.array]
         image = pickle.load(open("./patterns/" + patternName, 'rb'))
         self.__dmd.add_sub_sequence_list(image, frameTime)
-
+    """
 
 
     ## ----  Public  ---- ##
@@ -107,9 +107,9 @@ class DMD:
         self.__loaded_patterns.append(self.__patterns[patternID])
         self.__frame_time.append(frameTime)
 
-    def add_list_to_seq(self, patternID : int, frameTime : int = 10) -> None:
-        self.__loaded_patterns.append(self.__patterns_lists[patternID])
-        self.__frame_time.append(frameTime)
+    #def add_list_to_seq(self, patternID : int, frameTime : int = 10) -> None:
+    #   self.__loaded_patterns.append(self.__patterns[patternID])
+    #   self.__frame_time.append(frameTime)
 
     def set_frame_time(self, time : int) -> None:
         self.__frame_time = time
@@ -122,7 +122,7 @@ class DMD:
 
     def show_patterns(self) -> None:
         self.__print_list(self.__patterns)
-        self.__print_list(self.__patterns_lists)
+        #self.__print_list(self.__patterns_lists)
 
     def set_reporting_frequency(self, freq: int):
         self.__reporting_freqency = freq
@@ -143,13 +143,16 @@ class DMD:
         self.__main_rep = rep
         self.__dmd.create_main_sequence(rep)
         
+        for i in range(len(self.__loaded_patterns)):
+                self.__add_image_to_seq(self.__loaded_patterns[i], self.__frame_time[i])
+        """
         if("list" in self.__loaded_patterns[0]):
             for i in range(len(self.__loaded_patterns)):
                 self.__add_list_to_seq(self.__loaded_patterns[i], self.__frame_time[i])
         else:
             for i in range(len(self.__loaded_patterns)):
                 self.__add_image_to_seq(self.__loaded_patterns[i], self.__frame_time[i])
-
+        """
         print("Project created")
 
     def load_project(self) -> None:
@@ -170,10 +173,10 @@ class DMD:
         self.__dmd.stop_projecting()
     
 
-dmd = DMD(0)
-dmd.show_patterns()
+#dmd = DMD(0)
+#dmd.show_patterns()
 #dmd.add_image_to_seq(2,1000)
 #dmd.add_image_to_seq(4,1000)
-dmd.add_list_to_seq(3,1000)
-dmd.create_project()
-dmd.run()
+#dmd.add_list_to_seq(3,1000)
+#dmd.create_project()
+#dmd.run()

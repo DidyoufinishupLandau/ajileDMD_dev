@@ -90,7 +90,6 @@ class RPPico:
     def Is_Ready(self) -> bool:
         self.ser.write(b"_DR_\n")
         ret = self.Read()
-
         if("READY" in ret):
             return True
         else:
