@@ -72,7 +72,6 @@ def switch_menu() -> int:
     print("8: Multiple with OFF image")
     option = input("Select option: ")
 
-
     # Create new sequence (not needed if only one main sequence is loaded)
     if(option == "1"):
         dmd.create_project()
@@ -140,7 +139,7 @@ def switch_menu() -> int:
         dmd.run_example()
         _rp.Start()
         return 0
-    
+
     elif(option == "8"):
         patterns = load_list_images_list()
         continue_loop = True
@@ -156,7 +155,7 @@ def switch_menu() -> int:
         freq: int = int(input("Frame time of each sequence: "))
         dmd.multiple_patterns_sequence(images, offImage, int(freq))
         return 0
-    
+
     elif(option == "9"):
         print("Saving")
         sr.save_data(_rp.Get_data(), "PicoTest")
@@ -167,6 +166,7 @@ def switch_menu() -> int:
         print(_rp.Test())
         _rp.Info()
         return 0
+
     # Non-existing option given = exit
     return -1
 

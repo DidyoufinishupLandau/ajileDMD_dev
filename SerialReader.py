@@ -58,7 +58,7 @@ class RPPico:
         self.ser.write(bytes(text, "utf-8"))
 
     def Start(self):
-        self.ser.write(b"S_TRUE\n")
+        self.ser.write(b"_S_TRUE\n")
 
     def Info(self):
         self.ser.write(b"INFO\n")

@@ -40,9 +40,7 @@ class DMD_Pico:
 
     # Create project; repetition of the DMD's sequence: 0(=infinity)
     def Create_project(self, rep: int=1):
-        self._pico.Info()
         self._pico.Number_of_images(self._dmd.create_project(rep))
-        self._pico.Info()
 
     # Starts triggering and data taking (data is not sent to PC)
     def Run_trigger(self):
@@ -52,11 +50,7 @@ class DMD_Pico:
     # Starts triggering and data taking (data is sent to PC when operation is finished)
     def Run(self) -> list:
         self.Run_trigger()
-        con: bool = True
-        while(con):
-            if(self._pico.Is_Ready()):
-                con = False # It's not needed, loop is terminated by return
-                return self._pico.Get_data()
+        return self._pico.Get_data()
         
     def Save_data(self, data:list, file_name:str) -> None:
         pico.save_data(data, file_name)
