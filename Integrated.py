@@ -15,8 +15,8 @@ import Plotter
 import time
 
 class DMD_Pico:
-    _dmd: object
-    _pico: object
+    global _dmd
+    global _pico
 
     def __init__(self,Pico_COM: str):
         self._pico = pico.RPPico(Pico_COM)
@@ -62,16 +62,13 @@ class DMD_Pico:
         Plotter.create_plot(data_name, pixel_size, image_name)
 
 
-print("3")
 obj = DMD_Pico("COM7")
-print("2")
-#obj.Show_patterns()
-obj.Add_pattern(9)
-print("1")
+obj.Show_patterns()
+obj.Add_pattern(7)
 obj.Create_project()
 print("Started")
 start = time.time()
 ## Works till this moment
-obj.Run_Save("Data_test_09_08_2023")
+obj.Run_Save("Data_test_57_57")
 end = time.time()
 print(end - start)
