@@ -14,6 +14,10 @@ from DMD_driver import DMD_driver
 from matplotlib import pyplot as plt
 import pattern_generator as pg
 
+# Set up logging
+import logging
+logger = logging.getLogger(__name__)
+
 
 class dmd_image:
     _dmd_driver: Union[DMD_driver, None] = None
@@ -23,26 +27,31 @@ class dmd_image:
 
     def __init__(self, dmd_driver: DMD_driver, image: Union[np.array, str, None] = None):
         if dmd_driver is not None:
+            logger.debug("DMD driver set")
             self._dmd_driver = dmd_driver
             self._height = dmd_driver.HEIGHT
             self._width = dmd_driver.WIDTH
         else:
             # Use default values
+            logger.debug("DMD driver not set")
             self._height = pg.aj.DMD_IMAGE_HEIGHT_MAX
             self._width = pg.aj.DMD_IMAGE_WIDTH_MAX
             self._dmd_driver = None
 
         if image is not None:
             if type(image) is str:
+                logger.debug(f"Image is given as a string {image}")
                 if image in pg.named_patterns.keys():
-                    self.image = pg.named_patterns[image]()
+                    self._image = pg.named_patterns[image]()
                 else:
-                    KeyError(f"Pattern {image} not found")
+                    raise KeyError(f"Pattern {image} not found")
             elif type(image) is np.array:
-                self.image = image
+                logger.debug(f"Image is given as an array size {np.shape}")
+                self._image = image
             else:
                 raise ValueError("Image is not of the correct type")
         else:
+            logger.debug(f"Image is not given, creating blank image")
             self._image = np.zeros((self._height, self._width), dtype=np.uint8)
 
     @property
@@ -50,15 +59,15 @@ class dmd_image:
         return self._image
 
     @image.setter
-    def image(self, image: np.array) -> None:
-        if image.shape == (self._height, self._width):
-            self._image = image
+    def image(self, new_image: np.array) -> None:
+        if new_image.shape == (self._height, self._width):
+            self._image = new_image
         else:
             raise ValueError("Image is not of the correct size")
 
     def plot(self) -> None:
         # Plot image using matplotlib
-        plt.imshow(self._image, cmap='gray', vmin=0, vmax=255)
+        plt.imshow(self.image, cmap='gray', vmin=0, vmax=255)
 
     def project(self) -> None:
         """Show the image on the dmd, as a single image infinite time"""
@@ -117,3 +126,10 @@ class dmd_sequence:
 
     def __iter__(self):
         return iter(self._images)
+
+
+if __name__ == "__main__":
+    dmd = DMD_driver()
+    test_image = dmd_image(dmd, "checkers")
+    test_image.plot()
+    test_image.project()

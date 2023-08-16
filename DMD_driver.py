@@ -9,7 +9,12 @@ New version of DMD control.
 """
 
 import numpy as np
-import ajiledriver as aj
+import importlib.util
+if importlib.util.find_spec("ajiledriver") is not None:
+    import ajiledriver as aj
+else:
+    print("Warning: ajiledriver not found. Using mock driver.")
+    import ajile_mock_driver as aj
 from warnings import warn
 from typing import Union
 
@@ -144,6 +149,7 @@ class DMD_driver:
         frame.SetImageID(seq_id)
         frame.SetFrameTimeMSec(int(frame_time))
         self._project.AddFrame(frame)
+        self.total_frames += 1
 
     def add_sub_sequence_list(self, np_images: list[np.array], frame_time: int = 1000):
         """
@@ -248,3 +254,7 @@ class DMD_driver:
     @property
     def sequence(self):
         return self._sequence
+
+
+if __name__ == "__main__":
+    dmd = DMD_driver()
