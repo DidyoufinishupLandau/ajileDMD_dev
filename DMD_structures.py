@@ -12,20 +12,36 @@ import numpy as np
 from typing import List, Union
 from DMD_driver import DMD_driver
 from matplotlib import pyplot as plt
+import pattern_generator as pg
 
 
 class dmd_image:
-    _dmd_driver: DMD_driver = None
+    _dmd_driver: Union[DMD_driver, None] = None
     _height: int = 0
     _width: int = 0
     _image: np.array
 
-    def __init__(self, dmd_driver: DMD_driver, image: Union[np.array, None] = None):
-        self._dmd_driver = dmd_driver
-        self._height = dmd_driver.HEIGHT
-        self._width = dmd_driver.WIDTH
+    def __init__(self, dmd_driver: DMD_driver, image: Union[np.array, str, None] = None):
+        if dmd_driver is not None:
+            self._dmd_driver = dmd_driver
+            self._height = dmd_driver.HEIGHT
+            self._width = dmd_driver.WIDTH
+        else:
+            # Use default values
+            self._height = pg.aj.DMD_IMAGE_HEIGHT_MAX
+            self._width = pg.aj.DMD_IMAGE_WIDTH_MAX
+            self._dmd_driver = None
+
         if image is not None:
-            self.image = image
+            if type(image) is str:
+                if image in pg.named_patterns.keys():
+                    self.image = pg.named_patterns[image]()
+                else:
+                    KeyError(f"Pattern {image} not found")
+            elif type(image) is np.array:
+                self.image = image
+            else:
+                raise ValueError("Image is not of the correct type")
         else:
             self._image = np.zeros((self._height, self._width), dtype=np.uint8)
 
@@ -46,6 +62,8 @@ class dmd_image:
 
     def project(self) -> None:
         """Show the image on the dmd, as a single image infinite time"""
+        if self._dmd_driver is None:
+            raise RuntimeError("DMD driver not set")
         # Stop any existing projection
         self._dmd_driver.stop_projecting()
         # Create new project

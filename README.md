@@ -40,8 +40,8 @@ from DMD_structures import dmd_image
 
 # Connect to the driver
 dmd = DMD_driver()
-# Create an image
-image_to_project = dmd_image(dmd_driver=dmd)
+# Create an image (can be a named pattern, numpy array, or none)
+image_to_project = dmd_image(dmd_driver=dmd, image='random_50_50')
 # We can directly project this
 image_to_project.project()
 ```
