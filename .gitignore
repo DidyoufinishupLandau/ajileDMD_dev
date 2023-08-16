@@ -1,4 +1,6 @@
-
 *.pickle
 *.pyc
-*.pyc
+*.ini
+RaspberryPico/
+venv/
+```

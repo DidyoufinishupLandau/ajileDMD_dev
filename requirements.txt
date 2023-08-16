@@ -1,0 +1,7 @@
+opencv-python
+pyserial
+ipykernel
+matplotlib
+configdict
+scipy
+numpy
