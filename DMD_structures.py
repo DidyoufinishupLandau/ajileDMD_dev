@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class dmd_image:
+    """Base class for a single image to be projected via the DMD"""
     _dmd_driver: Union[DMD_driver, None] = None
     _height: int = 0
     _width: int = 0
@@ -29,6 +30,7 @@ class dmd_image:
         if dmd_driver is not None:
             logger.debug("DMD driver set")
             self._dmd_driver = dmd_driver
+            # Set height and width for the device
             self._height = dmd_driver.HEIGHT
             self._width = dmd_driver.WIDTH
         else:
@@ -56,31 +58,36 @@ class dmd_image:
 
     @property
     def image(self) -> np.array:
+        """Return the image as a numpy array"""
         return self._image
 
     @image.setter
     def image(self, new_image: np.array) -> None:
+        """Set the image as a numpy array, enforcing height and width restrictions"""
         if new_image.shape == (self._height, self._width):
             self._image = new_image
         else:
             raise ValueError("Image is not of the correct size")
 
     def plot(self) -> None:
-        # Plot image using matplotlib
-        plt.imshow(self.image, cmap='gray', vmin=0, vmax=255)
+        """Plot the image using matplotlib"""
+        plt.imshow(self.image, cmap='gray')
+        plt.show()
 
     def project(self) -> None:
         """Show the image on the dmd, as a single image infinite time"""
         if self._dmd_driver is None:
             raise RuntimeError("DMD driver not set")
+
         # Stop any existing projection
         self._dmd_driver.stop_projecting()
         # Create new project
         self._dmd_driver.create_project("single_image")
+        # Add image to the project
+        self._dmd_driver.add_sequence_item(self._image, 1)
         # Create sequence
         self._dmd_driver.create_main_sequence(1)
-        # Add image to the project
-        self._dmd_driver.add_sub_sequence(self._image, 1)
+
         # Run the project
         self._dmd_driver.start_projecting()
 
@@ -95,7 +102,7 @@ class dmd_sequence:
     def __init__(self, dmd_driver: DMD_driver):
         self._dmd_driver = dmd_driver
 
-    def add_image(self, image: Union[dmd_image, np.array], frame_time: int) -> "dmd_sequence":
+    def append(self, image: Union[dmd_image, np.array], frame_time: int) -> "dmd_sequence":
         if type(image) is dmd_image:
             self._images.append(image)
         else:
@@ -114,10 +121,11 @@ class dmd_sequence:
         self._dmd_driver.create_main_sequence(1)
         # Add image to the project
         for i, frame in enumerate(self._images, start=1):
-            self._dmd_driver.add_sub_sequence(frame.image, i)
+            self._dmd_driver.add_sequence_item(frame.image, i)
         # Run the project
         self._dmd_driver.start_projecting()
 
+    # Helper functions to handle the underlying image list
     def __getitem__(self, item):
         return self._images[item]
 
@@ -128,8 +136,13 @@ class dmd_sequence:
         return iter(self._images)
 
 
+# Code to test the driver if executed as main
 if __name__ == "__main__":
+    # Connect to driver
     dmd = DMD_driver()
+    # Create a test "checkers" image
     test_image = dmd_image(dmd, "checkers")
+    # Plot to the screen
     test_image.plot()
+    # Project this with the DMD
     test_image.project()

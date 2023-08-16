@@ -38,14 +38,13 @@ class DMD_driver:
     frame_time: int = 10
 
     def __init__(self, comm_interface=None,
-                 ipaddress: Union[str, None] = "192.168.200.1", port: Union[int, None] = 5005) -> None:
+                 ipaddress: Union[str, None] = "192.168.200.1",
+                 port: Union[int, None] = 5005) -> None:
         """connects to DMD"""
         # Set up interface
         if comm_interface is None:
             comm_interface = aj.USB3_INTERFACE_TYPE
-        # Set device number
-        device_number = 0
-        # Create system
+        # Create host system
         self._system = aj.HostSystem()
         # Set connection settings
         self._system.SetConnectionSettingsStr(ipaddress, "255.255.255.0", "0.0.0.0", port)
@@ -53,8 +52,8 @@ class DMD_driver:
         # Set interface
         self._system.SetCommunicationInterface(comm_interface)
         # Set USB number
-        self._system.SetUSB3DeviceNumber(device_number)
-        # Check
+        self._system.SetUSB3DeviceNumber(0)
+        # Check if the system can be started
         if self._system.StartSystem() != aj.ERROR_NONE:
             raise IOError("Error starting AjileSystem")
 
@@ -72,9 +71,9 @@ class DMD_driver:
             return self._project
         # create a project object
         self._project = aj.Project(project_name)
-        # add components to project
+        # add system hardware components to project
         self._project.SetComponents(self._system.GetProject().Components())
-        # Get DMD index
+        # Get DMD index from the project components
         self.dmd_index = self._project.GetComponentIndexWithDeviceType(aj.DMD_4500_DEVICE_TYPE)
         return self._project
 
@@ -110,14 +109,14 @@ class DMD_driver:
         )
         # Add the sequence to the project
         self._project.AddSequence(seq)
-        # Check sequence
+        # Check sequence has been uploaded
         _, sequence_was_found = self._project.FindSequence(self.main_sequence_ID)
         if not sequence_was_found:
             raise IOError('Sequence not found on device after adding.')
         # Return sequence
         return self._sequence
 
-    def add_sub_sequence(self, image: np.array, seq_id: int, frame_time: int = 1000):
+    def add_sequence_item(self, image: np.array, seq_id: int, frame_time: int = 1000):
         """
         add_sub_sequence(image, seqID, frameTime)
         Add a subsequence - in our case, a single frame - to the main sequence
@@ -149,26 +148,12 @@ class DMD_driver:
         frame.SetImageID(seq_id)
         frame.SetFrameTimeMSec(int(frame_time))
         self._project.AddFrame(frame)
+        # Increment total frames
         self.total_frames += 1
 
-    def add_sub_sequence_list(self, np_images: list[np.array], frame_time: int = 1000):
-        """
-        add_sub_sequence_list(np_images, frame_time)
-
-        Add a list of subsequences - in our case, a single frame - to the main sequence
-
-        arg:
-            np_images: np array image
-            frame_time - frame time in milliseconds
-        """
-        "Add sequence to the main sequence"
-        # public SequenceItem(ushort sequenceID, uint sequenceItemRepeatCount)
-        for i in range(len(np_images)):
-            seq_id: int = i + 1
-            self.add_sub_sequence(np_images[i], seq_id, frame_time)
-
     def create_trigger_rules(self, controller_index: int,
-                             trigger_on=aj.FRAME_STARTED, trigger_output=aj.EXT_TRIGGER_OUTPUT_1) -> None:
+                             trigger_on=aj.FRAME_STARTED,
+                             trigger_output=aj.EXT_TRIGGER_OUTPUT_1) -> None:
         """Create a trigger rule to connect the DMD frame started to the external output trigger"""
         if self._project is None:
             raise IOError('Project must be defined before trigger is created')

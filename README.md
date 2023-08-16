@@ -21,7 +21,10 @@ dmd = DMD_driver()
 # Create a default project
 dmd.create_project(project_name='test_project')
 # Add an image as a subsequence
-dmd.add_sub_sequence(image=np.ones((1080, 1920)), seq_id=1, frame_time=1000)
+dmd.add_sequence_item(image=np.ones((1080, 1920)), 
+                      seq_id=1, frame_time=1000)
+# Add a sequence
+dmd.create_main_sequence(seq_rep_count = 1)
 # Start the sequence
 dmd.start_projecting()
 # Wait for 5 seconds
