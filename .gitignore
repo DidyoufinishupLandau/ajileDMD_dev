@@ -1,8 +1,5 @@
 *.pickle
 *.pyc
-=======
-*.pickle
-*.pyc
 *.ini
-RaspberryPico/
 venv/
+.idea/
