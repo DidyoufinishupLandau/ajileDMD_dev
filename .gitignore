@@ -3,5 +3,4 @@
 *.ini
 RaspberryPico/
 venv/
-__pycache__/
-.idea/
+```
