@@ -16,6 +16,9 @@ import pattern_generator as pg
 
 # Set up logging
 import logging
+# Turn off logging for matplotlib to avoid spam
+logging.getLogger('matplotlib').setLevel(logging.ERROR)
+# Create logger
 logger = logging.getLogger(__name__)
 
 

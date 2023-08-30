@@ -5,8 +5,8 @@ driver. This will include all required calls, but, obviously, does nothing.
 import numpy as np
 
 # Define constants
-DMD_IMAGE_HEIGHT_MAX: int = 1080
-DMD_IMAGE_WIDTH_MAX: int = 1920
+DMD_IMAGE_HEIGHT_MAX: int = 1140
+DMD_IMAGE_WIDTH_MAX: int = 912
 USB3_INTERFACE_TYPE = "mock"
 DMD_4500_DEVICE_TYPE = "mock"
 SEQ_TYPE_PRELOAD = 1
