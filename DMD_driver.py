@@ -1,13 +1,3 @@
-# -*- coding: utf-8 -*-
-# -*- python=3.8.x
-"""
-Created on 06/07/2023
-
-New version of DMD control.
-
-@author: Alex Kedziora
-"""
-
 import numpy as np
 import importlib.util
 if importlib.util.find_spec("ajiledriver") is not None:
@@ -95,9 +85,7 @@ class DMD_driver:
 
         if self._project is None:
             raise SystemError("Project must be created before sequence is created")
-        if self.total_frames == 0:
-            warn("No frames defined. Sequence should be created after frames are uploaded to the device.", UserWarning)
-        # Create the sequence
+# Create the sequence
         """
         taken from C# driver to understand the meaning of each arg
         Sequence(ushort sequenceID, 
@@ -141,6 +129,7 @@ class DMD_driver:
         """
         # Create a sequence item based on C signature
         # "public SequenceItem(ushort sequenceID, uint sequenceItemRepeatCount)"
+        self.total_frames += 1
         logger.debug("Creating sequence item")
         seq_item = aj.SequenceItem(seq_id, 1)
 
@@ -150,8 +139,9 @@ class DMD_driver:
 
         # create two frames and add them to the project
         # (added to the last sequence item in the sequence)
-        logger.debug("Creating frame")
-        aj_image = aj.Image(seq_id)
+        image_id = self.total_frames + 1
+        logger.debug("Creating Image")
+        aj_image = aj.Image(image_id)
 
         # load the NumPy image into the Image object and convert it to DMD 4500 format
         logger.debug("Loading image from memory")
@@ -163,16 +153,14 @@ class DMD_driver:
 
         # Define frame related to an image
         logger.debug("Creating frame")
-        frame = aj.Frame(1)
+        frame = aj.Frame()
+        frame.SetSequenceID(seq_id)
         logger.debug("Setting frame properties")
-        frame.SetImageID(seq_id)
+        frame.SetImageID(image_id)
         logger.debug("Setting frame time")
         frame.SetFrameTimeMSec(int(frame_time))
         logger.debug("Adding frame to project")
         self._project.AddFrame(frame)
-        # Increment total frames
-        self.total_frames += 1
-
     def create_trigger_rules(self, controller_index: int,
                              trigger_on=aj.FRAME_STARTED,
                              trigger_output=aj.EXT_TRIGGER_OUTPUT_1) -> None:
@@ -223,17 +211,6 @@ class DMD_driver:
         # add the trigger rule to the project
         self._project.AddTriggerRule(dmd_frame_started_to_ext_trig_out)
 
-        # This part doesn't work quite right (probably wiring issue)
-        ext_trig_in_to_dmd_start_frame = aj.TriggerRule()
-
-        ext_trig_in_to_dmd_start_frame.AddTriggerFromDevice(
-            aj.TriggerRulePair(controller_index, aj.EXT_TRIGGER_INPUT_1))
-
-        ext_trig_in_to_dmd_start_frame.SetTriggerToDevice(aj.TriggerRulePair(self.dmd_index, aj.START_FRAME))
-
-        # add the trigger rule to the project
-        self._project.AddTriggerRule(ext_trig_in_to_dmd_start_frame)
-
     def stop_projecting(self) -> None:
         """Stop projecting"""
         logger.debug("Stopping projection")
@@ -254,8 +231,8 @@ class DMD_driver:
         self._system.GetDriver().WaitForLoadComplete(-1)
         # Start the current sequence
         # StartSequence(uint sequenceID, int deviceID, uint reportingFreq=1)
-        logger.debug('Starting sequence')
-        self._system.GetDriver().StartSequence(self.main_sequence_ID, self.dmd_index, reporting_freq)
+        logger.debug(f'Starting sequence - {self.main_sequence_ID}, {self.dmd_index}')
+        self._system.GetDriver().StartSequence(self.main_sequence_ID, self.dmd_index, 5)
         # Wait to start running
         while self._system.GetDeviceState(self.dmd_index).RunState() != aj.RUN_STATE_RUNNING:
             pass
