@@ -13,24 +13,15 @@ For example:
 
 ```python
 import numpy as np
-from DMD_driver import DMD_driver
+from DMD_main import control_DMD
 import time
+import generate_pattern
 
-# Connect to the DMD
-dmd = DMD_driver()
-# Create a default project
-dmd.create_project(project_name='test_project')
-# Add an image as a subsequence
-dmd.add_sequence_item(image=np.ones((1080, 1920)), 
-                      seq_id=1, frame_time=1000)
-# Add a sequence
-dmd.create_main_sequence(seq_rep_count = 1)
-# Start the sequence
-dmd.start_projecting()
-# Wait for 5 seconds
-time.sleep(5)
-# Stop the sequence
-dmd.stop_projecting()
+call_pattern = generate_pattern.DmdPattern('hadamard', 128, 128, gray_scale=255)
+hadamard_pattern = call_pattern.execute()
+# define a 3D array with form [[mask], [mask], [mask]...]
+cd = control_DMD(hadamard_pattern, project_name = "my_project", main_sequence_itr=1, frame_time=50)
+cd.execute()
 ```
 ## Higher level image handling
 
