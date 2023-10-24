@@ -19,7 +19,7 @@ class DmdPattern():
         self.height = height
         self.hadmard_size = width**2
         self.gray_scale = gray_scale
-    def execute(self, random_sparsity:int = 1):
+    def execute(self, random_sparsity:int = 1, two_dimension = False):
         """
         The execution function for mask generation.
         :param random_sparsity: The percentage of elements in random mask to be 1.
@@ -34,16 +34,18 @@ class DmdPattern():
         if self.pattern == "hadamard":
             positive_image = hadmard_matrix(self.hadmard_size)
             positive_image = walsh_to_hadmard_mask(positive_image)
-
+            if two_dimension:
+                return list(positive_image)
             def reshape_image(two_dimension_image):
                 two_dimension_image = two_dimension_image * self.gray_scale
                 return two_dimension_image.T[:,:, np.newaxis]
-            positive_image_list = map(reshape_image, positive_image)
-
-            return list(positive_image_list)
+            positive_image = map(reshape_image, positive_image)
+            return  list(positive_image)
 
         elif self.pattern == "random":
             positive_image = random_pattern(self.width, self.height, random_sparsity) * self.gray_scale
+            if two_dimension:
+                return  positive_image
             return positive_image.T[:,:,np.newaxis]
 ###############################################################################following code do random pattern
 def random_pattern(width, height, sparsity):
