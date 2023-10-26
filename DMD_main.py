@@ -15,26 +15,19 @@ class control_DMD:
         self.project_name = project_name
         self.main_sequence_itr = main_sequence_itr
         self.frame_time = frame_time
-    def execute(self):
-        num_round = int(np.ceil(len(self.pattern) /5000))
-        if num_round == 0:
-            num_round=1
-        for i in range(num_round):
+    def execute(self,pattern_start, pattern_end):
             dmd = DMD_driver()
             dmd.create_project(project_name=self.project_name)
             dmd.create_main_sequence(seq_rep_count=self.main_sequence_itr)
-            ceil_num = i+1
-            if ceil_num == num_round:
-                ceil_num = len(self.pattern)
 
-            else:
-                ceil_num =  ceil_num *5000
-
-            for j in range( 5000*i,  ceil_num):
+            #for j in range( 5000*(i),  ceil_num):
+            for j in range(pattern_start , pattern_end):
                 dmd.add_sequence_item(image=rescale(self.pattern[j]), seq_id=1, frame_time=self.frame_time)
             dmd.my_trigger()
             dmd.start_projecting()
-            time.sleep((len(self.pattern)*self.frame_time/1000)*1.1)
+            print("sleep:", self.frame_time/1000*1.01*(pattern_end-pattern_start))
+            time.sleep(self.frame_time/1000*1.01*(pattern_end-pattern_start))
+            dmd.stop_projecting()
 def rescale(input_image: np.array) -> np.array:
     """
     resize any size image into 1140 * 912 image.
