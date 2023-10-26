@@ -1,4 +1,9 @@
-from machine import ADC, Pin
+import os
+import time
+
+lock_file = "lock.file"
+data_file = "data.csv"
+from machine import Pin, ADC
 import utime
 import sys
 
@@ -9,15 +14,16 @@ FROM_DMD_OUT_pin: Pin = Pin(0, Pin.IN, Pin.PULL_DOWN)
 TO_DMD_IN_pin: Pin = Pin(1, Pin.OUT)
 # PD_pin is connected to ADC0
 PD_pin: ADC = ADC(0)
+PD_pin_two: ADC = ADC(1)
 
 # Global variables
-_NO_OF_IMAGES: int = -1
+_NO_OF_IMAGES: int = 1000
 _DELAY: int = 0
 _START: bool = False
 _READY_FOR_ACQ: bool = False
 _DATA: list = []
+_DATA_two: list = []
 _ACQ_COUNTER: int = 0
-
 
 def handle_interrupt(interrupt_pin: Pin) -> None:
     """Define interrupt  handler - must be fast and inner loop"""
@@ -26,14 +32,18 @@ def handle_interrupt(interrupt_pin: Pin) -> None:
     # Increment Acquisition handler
     _ACQ_COUNTER += 1
     _DATA.append(read_PD())
+    _DATA_two.append(read_PD_two())
 
 
 def read_PD() -> float:
     """Read from the photodiode pin, return as u16"""
+
     return PD_pin.read_u16()
+def read_PD_two():
+    return PD_pin_two.read_u16()
 
 
-def send_trigger(sleep_time_us: int = 0):
+def send_trigger(sleep_time_us: int = 1):
     """Send the output trigger high and low"""
     TO_DMD_IN_pin.value(1)
     # Define sleep-time
@@ -63,8 +73,10 @@ def acquire(no_of_images: int, delay: int = 0) -> list:
             utime.sleep_us(delay)
 
     else:
+        print("no delay acquire")
         while _ACQ_COUNTER < no_of_images + 2:
             send_trigger()
+        print("acquire_complete")
     return _DATA
 
 
@@ -89,6 +101,7 @@ def restart():
     _DELAY = 0
     _START = False
     _DATA = []
+    _DATA_two = []
 
 
 def commands_parser(comm: str) -> None:
@@ -120,6 +133,7 @@ def commands_parser(comm: str) -> None:
         print("Number of images: ", _NO_OF_IMAGES)
         print("Delay after a single data acquisition (us): ", _DELAY)
         print("Data size: ", len(_DATA))
+        print("Data size two: ", len(_DATA_two))
 
     # GD = Get Data
     if "GD" in comm:
@@ -128,9 +142,11 @@ def commands_parser(comm: str) -> None:
 
     if "RD" in comm:
         _DATA = []
-    if "ShowData" in comm:
+    if "ShowDataOne" in comm:
         print(_DATA)
-    if "RESTART" in comm:
+    if "ShowDataTwo" in comm:
+        print(_DATA_two)
+    if "C" in comm:
         restart()
     if "*IDN" in comm:
         print("PicoADC v1.0")
@@ -150,6 +166,5 @@ def main():
             acquire(_NO_OF_IMAGES, _DELAY)
             _START = False
 
+main()
 
-if __name__=="__main__":
-    main()
