@@ -2,9 +2,9 @@
 """
 Author: Pan Zhang
 """
+import sys
 import numpy as np
 import scipy
-from skimage import transform
 class DmdPattern():
     def __init__(self,pattern: str, width: int, height: int, gray_scale: int=255):
         """
@@ -19,7 +19,7 @@ class DmdPattern():
         self.height = height
         self.hadmard_size = width**2
         self.gray_scale = gray_scale
-    def execute(self, random_sparsity:int = 1, two_dimension = False):
+    def execute(self,length=1, random_sparsity:int = 1):
         """
         The execution function for mask generation.
         :param random_sparsity: The percentage of elements in random mask to be 1.
@@ -31,22 +31,114 @@ class DmdPattern():
         nd.array: A single random pattern with given sparsity that point left.
         nd.array: A single random pattern with given sparsity that point right.
         """
+        print("spcae")
         if self.pattern == "hadamard":
             positive_image = hadmard_matrix(self.hadmard_size)
-            positive_image = walsh_to_hadmard_mask(positive_image)
-            if two_dimension:
-                return list(positive_image)
-            def reshape_image(two_dimension_image):
-                two_dimension_image = two_dimension_image * self.gray_scale
-                return two_dimension_image.T[:,:, np.newaxis]
-            positive_image = map(reshape_image, positive_image)
-            return  list(positive_image)
+            if self.hadmard_size <128:
+                positive_image = walsh_to_hadmard_mask(positive_image)
+            elif self.hadmard_size>128:
+                positive_image = walsh_to_hadmard_mask(positive_image)
+            def to_conjugate(pattern):
+                pattern = (pattern==0).astype(int).astype(np.uint8)
+                return pattern
+            positive_image_list = list(positive_image)
+            negative_image_list = list(map(to_conjugate, positive_image_list))
+            return  positive_image_list[:int(len(positive_image)*length)], negative_image_list[:int(len(positive_image)*length)]
+
+
 
         elif self.pattern == "random":
-            positive_image = random_pattern(self.width, self.height, random_sparsity) * self.gray_scale
-            if two_dimension:
-                return  positive_image
-            return positive_image.T[:,:,np.newaxis]
+            positive_image_list = []
+            negative_image_list = []
+            for i in range(self.width*self.height*length):
+                positive = random_pattern(self.width, self.height, random_sparsity)
+                negative = (positive==0).astype(int)
+                positive_image_list.append(positive)
+                negative_image_list.append(negative)
+            return  positive_image_list, negative_image_list
+
+        elif self.pattern == "raster":
+            positive_image_list = []
+            negative_image_list = []
+            for i in range(self.width):
+                for j in range(self.height):
+                    positive = np.zeros((self.width, self.height))
+                    positive[i][j] = 1
+                    negative = (positive==0).astype(int)
+                    positive_image_list.append(positive.astype(np.uint8))
+                    negative_image_list.append(negative.astype(np.uint8))
+            return  positive_image_list, negative_image_list
+        elif self.pattern == "fourier":
+            fourier_mask = []
+            phase = [0,np.pi/2, np.pi, np.pi*3/2]
+            for i in range(self.width):
+                for j in range(self.height):
+                    for k in range(len(phase)):
+                        fourier_mask.append(generate_fourier_mask(i,j,self.width,phase[k]))
+            return fourier_mask
+def three_dimension(pattern):
+    def inner_loop(two_dimension_pattern):
+        return two_dimension_pattern.T[:,:,np.newaxis]
+    return list(map(inner_loop, pattern))
+##########################This section generates the superpixel patterns
+def superpixel(phase_matrix, pixel_size=4):
+    """
+    Input
+    :param pixel_size:
+    :return:
+    """
+    phase_set = np.array(find_unique_numbers_2d(phase_matrix))
+    one_super_pixel = np.arange(0,pixel_size**2,1)/pixel_size**2*np.pi
+
+
+    return
+def find_unique_numbers_2d(array_2d):
+    unique_numbers = set()
+
+    for row in array_2d:
+        unique_numbers.update(row)
+
+    return list(unique_numbers)
+
+def replace_number_with_array(original_matrix, target_number, replacement_array):
+    def replace_row(row):
+        return [
+            replacement_array[k] if cell == target_number else cell
+            for k, cell in enumerate(row)
+        ]
+
+    result_matrix = list(map(replace_row, original_matrix))
+    return result_matrix
+##########################
+def generate_fourier_mask(u,v,N, phi):
+    """
+    Generate a Fourier mask for a square image of size N pixels.
+
+    Args:
+    N (int): The number of pixels along one dimension of the square image.
+    phi (float): The phase term, which should vary between 0 and 2π.
+
+    Returns:
+    numpy.ndarray: The generated Fourier mask.
+    """
+    x, y= np.meshgrid(np.arange(N), np.arange(N))
+    mask = np.cos(2 * np.pi * (u * x + v * y) / N + phi)
+    return mask
+def embed(pattern):
+    height,width = pattern[0].shape
+    DMD_height = 1140
+    DMD_width = 912
+
+    height_start = int(DMD_height/2) - int(height/2)
+    height_end = int(DMD_height/2)+int(height/2)
+    width_start = int(DMD_width/2)-int(height/2)
+    width_end = int(DMD_width/2)+int(height/2)
+    new_pattern = []
+    def inner_loop(two_dimension_pattern):
+        one = (np.ones((DMD_height, DMD_width)) * 128).astype(np.uint8)
+        one[height_start:height_end, width_start: width_end] = two_dimension_pattern * 255
+        return one.T[:,:, np.newaxis]
+    return list(map(inner_loop, pattern))
 ###############################################################################following code do random pattern
 def random_pattern(width, height, sparsity):
     mask_array = (np.random.rand(height, width) < sparsity).astype(int)
@@ -60,7 +152,7 @@ def bit_reverse_permutation(num_bits):
     for i in range(n):
         reversed_index = int(format(i, f'0{num_bits}b')[::-1], 2)
         result[reversed_index] = data[i]
-    
+
     return result
 def generate_gray_code(n):
     if n <= 0:
@@ -87,12 +179,23 @@ def hadmard_matrix(system_size):
         array: Two dimension array
         array: two dimension array
     """
-    hadmard_matrix = scipy.linalg.hadamard(system_size)
-    array_one = (hadmard_matrix == 1).astype(int)
-    array_one = array_one.astype(np.uint8)
-    return array_one
+    if system_size <= 128*128:
+        hadamard_matrix = scipy.linalg.hadamard(system_size)
+        hadamard_matrix = (hadamard_matrix == 1).astype(int)
+        hadamard_matrix = hadamard_matrix.astype(np.uint8)
+        return hadamard_matrix
+    if system_size > 128*128:
+        hadamard_matrix = scipy.linalg.hadamard(128*128)
+        hadamard_matrix = (hadamard_matrix == 1).astype(int)
+        hadamard_matrix = hadamard_matrix.astype(np.uint8)
+        for _ in range(int(np.sqrt(system_size) / np.sqrt(128*128))):
+            x_top = np.hstack((hadamard_matrix, hadamard_matrix)).astype(np.uint8)
+            x_bottom = np.hstack((hadamard_matrix, (hadamard_matrix*-1).astype(np.uint8)))
+            hadamard_matrix = np.vstack((x_top, x_bottom)).astype(np.uint8)
 
-def walsh_to_hadmard_mask(input_matrix):
+        return  hadamard_matrix
+
+def walsh_to_hadmard_mask(input_matrix, percent_length=1):
     """
     Map the hadmard matrix into walsh matrix
     :param input_matrix: 2D array
@@ -127,6 +230,46 @@ def walsh_to_hadmard_mask(input_matrix):
             row_number = np.linspace(start_row, end_row - 1, end_row-start_row).astype(int)
             for n in range(len(row_number)):
                 small_matrix.append(input_matrix[new_list[row_number[n]], start_col:end_col])
-            small_matrix = np.array(small_matrix)
+            small_matrix = np.array(small_matrix).astype(np.uint8)
             small_matrices.append(small_matrix)
-    return np.array(small_matrices)
+    length = int(percent_length*len(small_matrix)**2)
+    return np.array(small_matrices)[0:length]
+def walsh_to_hadmard_mask(input_matrix, percent_length=1):
+    """
+    Map the hadmard matrix into walsh matrix
+    :param input_matrix: 2D array
+    :return: walsh matrix
+    """
+    small_matrix_size = int(np.sqrt(len(input_matrix[0])))
+    num_rows, num_cols = input_matrix.shape
+    num_small_matrices = num_rows // small_matrix_size
+    small_matrices = []
+
+    reverse_bit_string = bit_reverse_permutation(int(np.log2(num_rows)))
+    gray_code_string = generate_gray_code(int(np.log2(num_rows)))
+    for i in range(len(gray_code_string)):
+        gray_code_string[i] = int(gray_code_string[i], 2)
+
+    def mapping(n):
+        n = gray_code_string[int(reverse_bit_string[n])]
+        return n
+    mapping_list = [mapping(i) for i in range(num_rows)]
+    mapping_list = np.array(mapping_list)
+    new_list = []
+    for i in range(len(mapping_list)):
+        new_list.append(np.where(mapping_list==i)[0][0])
+    new_list = np.array(new_list)
+    for i in range(num_small_matrices):
+        for j in range(num_small_matrices):
+            start_row = i * small_matrix_size
+            end_row = start_row + small_matrix_size
+            start_col = j * small_matrix_size
+            end_col = start_col + small_matrix_size
+            small_matrix = []
+            row_number = np.linspace(start_row, end_row - 1, end_row-start_row).astype(int)
+            for n in range(len(row_number)):
+                small_matrix.append(input_matrix[new_list[row_number[n]], start_col:end_col])
+            small_matrix = np.array(small_matrix).astype(np.uint8)
+            small_matrices.append(small_matrix)
+    length = int(percent_length*len(small_matrix)**2)
+    return np.array(small_matrices)[0:length]
